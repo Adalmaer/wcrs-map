@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <title>WCRS Map</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/map.css">
+    <link rel="stylesheet" href="dist/themes/default/style.min.css" />
+    <script src="js/jquery.min.js"></script>
+    <script src="js/jstree.min.js"></script>
+</head>
+
+<body>
+
+    
+        <div id="container"></div>
+
+        <section>
+            <div id="top"></div>
+            <nav id="right">
+                <div id="jstree">
+                    <ul id="list"></ul>
+				</div>
+            </nav>
+
+           
+        </section>
+
+        <script src="js/three.js"></script>
+        <script src="js/OrbitControls.js"></script>
+        <script src="js/Detector.js"></script>
+        <script src="js/stats.min.js"></script>
+        <script src="js/data.js"></script>
+        <script src="js/map.js"></script>
+        <script>
+            $(function() {
+                $('#jstree').jstree({
+                    "core": {
+                        "multiple": false,
+                        "animation": 1
+                    }
+                });
+            });
+        </script>
+
+</body>
+
+</html>
