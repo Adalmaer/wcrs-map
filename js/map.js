@@ -139,7 +139,7 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
   
 
 		// Create system spheres
-		for (i=0;i<120;i++)
+		for (i=0;i<125;i++)
 				{
 				
 				// create a new mesh with
@@ -168,52 +168,9 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 		
 				}
 				
-				var quadrantId;
-				var sektorId;
-				var mainul = document.getElementById("list");
-				var quaul;
-				var sekul;
-				
-				// Add list items to right sidebar
-				for (i=0;i<120;i++){
-					
 
-					
-						quadrantId = data.systeme[i].quadrant_id;
-						
-						var li = document.createElement("li");
-						li.appendChild(document.createTextNode(data.systeme[i].quadrant_id));
-						//li.setAttribute("id", "qua-"+data.systeme[i].quadrantId);
-						li.setAttribute("id", "qua-"+data.systeme[i].quadrant_id);
-						
-						
-						li.setAttribute("data-x", (((30 * data.systeme[i].quadrant_x)) * 50)+750);
-						li.setAttribute("data-y", (((30 * data.systeme[i].quadrant_y)) * 50)+750);
-						
-						
-						li.setAttribute("data-jstree",'{"icon":"glyphicon glyphicon-folder-open"}');
-						
-						
-						var quaul = document.createElement("ul");
-						
-						
-							
-						while (data.systeme[i].quadrant_id==quadrantId) {
-							var sysli = document.createElement("li");
-							sysli.appendChild(document.createTextNode(data.systeme[i].name));
-							sysli.setAttribute("id", "sys-"+data.systeme[i].id);
-            sysli.setAttribute("data-x", ((data.systeme[i].x + (30 * data.systeme[i].quadrant_x)) * 50));
-            sysli.setAttribute("data-y", ((data.systeme[i].y + (30 * data.systeme[i].quadrant_y)) * 50));
-							sysli.setAttribute("data-jstree",'{"icon":"glyphicon glyphicon-globe"}');
-							quaul.appendChild(sysli);
-							i++;
-						}
-						
-						li.appendChild(quaul);
-						mainul.appendChild(li);
 				
-				
-				}
+				createSidebarList();
 				
 				//var mesh = new THREE.Mesh(total, sphereMaterial)
 				//scene.add(mesh);
@@ -248,7 +205,7 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 				controls.enablePan = true;
 				controls.enableRotate = true;
 				
-				controls.minDistance = 2000;
+				controls.minDistance = 0;
 				controls.maxDistance = 20000;
 				controls.minPolarAngle = 0; // radians
 				controls.minAzimuthAngle = - Math.PI/2; // radians
@@ -272,7 +229,97 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 				
 			}
 			
+			function myFunction()
+			{
+				controls.reset();
+			}
 			
+			function createSidebarList()
+			{
+				// Add list items to right sidebar
+				var quadrantId  = -1;
+				var sektorId =-1;
+				var mainul = document.getElementById("list");
+				var quaul;
+				var quali;
+				var sekul;
+				var sekli;
+				//sekli.appendChild(document.createTextNode("Sektor"));
+				
+				
+				for (i=0;i<125;i++){
+					
+				
+					
+					// Conditional add quadrant
+					if (quadrantId != data.systeme[i].quadrant_id)
+					{
+
+						// Prevent if i=0
+						if (quali != null)
+						{
+							quali.appendChild(quaul);
+							//mainul.appendChild(quali);
+							sekul.appendChild(quali);
+						}
+						quali = document.createElement("li");
+						quaul = document.createElement("ul");
+						quali.appendChild(document.createTextNode("Quadrant: "+data.systeme[i].quadrant_id));
+						quali.setAttribute("id", "qua-"+data.systeme[i].quadrant_id);
+						quali.setAttribute("data-x", (((30 * data.systeme[i].quadrant_x)) * 50)+750);
+						quali.setAttribute("data-y", (((30 * data.systeme[i].quadrant_y)) * 50)+750);
+						quali.setAttribute("cam", "2000");
+						quali.setAttribute("data-jstree",'{"icon":"glyphicon glyphicon-folder-open"}');
+						
+						quadrantId=data.systeme[i].quadrant_id;
+						
+						
+					}
+					
+					if (sektorId != data.systeme[i].sektor_id)
+					{
+						// Prevent if i=0
+						if (sekli != null)
+						{
+							sekli.appendChild(sekul);
+							mainul.appendChild(sekli);
+						}
+						sekli = document.createElement("li");
+						sekul = document.createElement("ul");
+						sekli.appendChild(document.createTextNode("Sektor: "+data.systeme[i].sektor_id));
+						sekli.setAttribute("id", "sek-"+data.systeme[i].sektor_id);
+						sekli.setAttribute("data-x", (((30 * data.systeme[i].quadrant_x)) * 50)+1500);
+						sekli.setAttribute("data-y", (((30 * data.systeme[i].quadrant_y)) * 50)+1500);
+						sekli.setAttribute("cam", "4000");
+						sekli.setAttribute("data-jstree",'{"icon":"glyphicon glyphicon-folder-open"}');
+						
+						sektorId=data.systeme[i].sektor_id;
+						
+					}	
+					
+					//Add System
+					var sysli = document.createElement("li");
+					sysli.appendChild(document.createTextNode(data.systeme[i].name));
+					sysli.setAttribute("id", "sys-"+data.systeme[i].id);
+					sysli.setAttribute("data-x", ((data.systeme[i].x + (30 * data.systeme[i].quadrant_x)) * 50));
+					sysli.setAttribute("data-y", ((data.systeme[i].y + (30 * data.systeme[i].quadrant_y)) * 50));
+					sysli.setAttribute("cam", "1000");
+					sysli.setAttribute("data-jstree",'{"icon":"glyphicon glyphicon-globe"}');
+					quaul.appendChild(sysli);	
+				}
+				
+				quali.appendChild(quaul);
+				sekul.appendChild(quali);
+				sekli.appendChild(sekul);
+				mainul.appendChild(sekli);
+
+				//sekli.appendChild(sekul);
+				//mainul.appendChild(sekli);
+				
+				
+			}
+			
+					
 
 
 			function makeTextSprite( message, x, y, z, parameters )
@@ -420,19 +467,8 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 			}
 			
 			$('#jstree').on("select_node.jstree", function (e, data) {
-
-			//alert("node_id: " + data.node.text); 
-			//alert(data.node.li_attr["data-x"]); 
-			//alert(data.node.li_attr["data-y"]); 
-			
-			views[0].camera.position.x=parseInt(data.node.li_attr["data-x"]); 
-			views[0].camera.position.z=parseInt(data.node.li_attr["data-y"]); 
-			controls.target = new THREE.Vector3(parseInt(data.node.li_attr["data-x"]), 0, parseInt(data.node.li_attr["data-y"]));
-			//controls.target.x=data.node.li_attr["data-x"];//, 0, data.node.li_attr["data-y"]);
-			//views[0].camera.lookAt(new THREE.Vector3(data.node.li_attr["data-x"],0,data.node.li_attr["data-y"]));
-			//controls.target.set(data.node.li_attr["data-x"], 0, data.node.li_attr["data-y"]);
-				//controls.target = new THREE.Vector3(data.node.li_attr["data-x"], 0, data.node.li_attr["data-y"]);
-				//views[0].camera.up.set(0,1,0)
-				//camera.updateProjectionMatrix();
-			
+				views[0].camera.position.x=parseInt(data.node.li_attr["data-x"]); 
+				views[0].camera.position.z=parseInt(data.node.li_attr["data-y"]); 
+				views[0].camera.position.y=parseInt(data.node.li_attr["cam"]); 
+				controls.target = new THREE.Vector3(parseInt(data.node.li_attr["data-x"]), 0, parseInt(data.node.li_attr["data-y"]));			
 			});
