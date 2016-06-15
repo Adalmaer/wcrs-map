@@ -36,7 +36,7 @@ var views = [{
     width: 0.20,
     height: 0.25,
     background: new THREE.Color().setRGB(0.0, 0.0, 0.0),
-    eye: [7500, 19000, 7500],
+    eye: [7500, 16500, 6000],
     up: [0, 1, 0],
     fov: 45,
     updateCamera: function(camera, scene, mouseX, mouseY) {
@@ -57,7 +57,7 @@ function init() {
     for (var ii = 0; ii < views.length; ++ii) {
 
         var view = views[ii];
-        camera = new THREE.PerspectiveCamera(view.fov, window.innerWidth / window.innerHeight, 1, 100000);
+        camera = new THREE.PerspectiveCamera(view.fov, window.innerWidth / window.innerHeight, 1, 450000);
         camera.position.x = view.eye[0];
         camera.position.y = view.eye[1];
         camera.position.z = view.eye[2];
@@ -77,18 +77,18 @@ function init() {
     scene.add(light);
 
 
-    //createSystems();
+    createSystems();
     //createSystems_1();
     //createSystems_2();
-    createSystems_3();
+    //createSystems_3();
     createSidebarList();
+	
+	createCustomGrid();
+	
 
-    var gridScale = 7500;
-    var gridHelper = new THREE.GridHelper(gridScale, 1500, 0x48b0b0, 0x48b0b0);
-    gridHelper.position.y = 0;
-    gridHelper.position.x = (gridScale);
-    gridHelper.position.z = (gridScale);
-    scene.add(gridHelper);
+
+	// line = new THREE.Line( geometry, material, THREE.LinePieces );
+	//scene.add( line );
 
     renderer = new THREE.WebGLRenderer({
         antialias: true
@@ -110,7 +110,9 @@ function init() {
 
 function initControlProperties() {
     //controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
-
+    var offsetX = 7500;
+	var offsetZ = 6000;
+	
     // Controls of main window
     controls.enableDamping = true;
     controls.dampingFactor = 0.25;
@@ -118,7 +120,7 @@ function initControlProperties() {
     controls.enablePan = true;
     controls.enableRotate = false;
     controls.minDistance = 0;
-    controls.maxDistance = 20000;
+    controls.maxDistance = offsetX*2+1500;
     controls.minPolarAngle = 0; // radians
     controls.minAzimuthAngle = -Math.PI / 2; // radians
     controls.maxAzimuthAngle = Math.PI / 2; // radians
@@ -128,16 +130,65 @@ function initControlProperties() {
 
     // Controls of small window
     //controls1.zoomSpeed = 0.75;
-    var positionXZ = 7500;
     controls1.enableZoom = false;
     controls1.enablePan = false;
     controls1.enableRotate = false;
-    views[1].camera.position.set(positionXZ, 19000, positionXZ);
-    views[1].camera.lookAt(new THREE.Vector3(positionXZ, 0, positionXZ));
+    views[1].camera.position.set(offsetX, offsetX*2, offsetZ);
+    views[1].camera.lookAt(new THREE.Vector3(offsetX, 0, offsetZ));
 }
 
 
+function createCustomGrid()
+{
+	
+	/*    var gridScale = 7500;
+    var gridHelper = new THREE.GridHelper(gridScale, 1500, 0x48b0b0, 0x48b0b0);
+    gridHelper.position.y = 0;
+    gridHelper.position.x = (gridScale);
+    gridHelper.position.z = (gridScale);
+    scene.add(gridHelper);*/
+	
+	var group = new THREE.Object3D(); //create an empty container
+	var orangeMaterial = new THREE.LineBasicMaterial( { color: 0xfe5b00 } );
+	var blueMaterial = new THREE.LineBasicMaterial( { color: 0x3399ff } );
 
+	for (var i=0; i<= 8;i++)
+	{
+		var geometry = new THREE.Geometry();
+		geometry.vertices.push( new THREE.Vector3( 0, 0, i*1500 ) );
+		geometry.vertices.push( new THREE.Vector3( 15000 , 0, i*1500 ) );
+			if(i % 2 ==0|i==0||i==8)
+		{
+			var line = new THREE.Line(geometry, blueMaterial);
+			group.add(line);
+		}
+		else
+		{
+			var line = new THREE.Line(geometry, orangeMaterial);
+			group.add(line);
+		}
+		 
+		 
+	}
+	
+		for (var i=0; i<= 10;i++)
+	{
+		   var geometry = new THREE.Geometry();
+		geometry.vertices.push( new THREE.Vector3( i*1500, 0,0  ) );
+		geometry.vertices.push( new THREE.Vector3(   i*1500, 0,12000 ) );
+				if(i % 2 ==0|i==0||i==10)
+		{
+			var line = new THREE.Line(geometry, blueMaterial);
+			group.add(line);
+		}
+		else
+		{
+			var line = new THREE.Line(geometry, orangeMaterial);
+			group.add(line);
+		}
+	}
+	scene.add(group);
+}
 
 function createSystems() {
 
@@ -495,7 +546,7 @@ function makeTextSprite(message, x, y, z, parameters) {
     // we MUST set the scale to 2:1.  The canvas is already at a 2:1 scale,
     // but the sprite itself is square: 1.0 by 1.0
     // Note also that the size of the scale factors controls the actual size of the text-label
-    var spriteScale = 175;
+    var spriteScale = 200;
     sprite.scale.set(spriteScale * 2, spriteScale, 1);
 
     // set the sprite's position.  Note that this position is in the CENTER of the sprite
