@@ -1,474 +1,583 @@
-if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+if (!Detector.webgl) Detector.addGetWebGLMessage();
 
-			var container, stats;
+var container, stats;
+var views, scene, renderer;
 
-			var views, scene, renderer;
+//var mesh, group1, group2, group3;
+var light;
+var mouseX, mouseY;
 
-			//var mesh, group1, group2, group3;
-			var	light;
+// Max
 
-			var mouseX = 0, mouseY = 0;
-			
-			// Max
-			var controls;
-			var controls1;
-			var raycaster;
-			var DESCENDER_ADJUST = 1.28;
-			var sphere_max;
-			//var mouse = new THREE.Vector2(), INTERSECTED;
+var controls;
+var controls1;
 
-			var windowWidth, windowHeight;
+var windowWidth, windowHeight;
 
-			var views = [
-				{
-					left: 0,
-					bottom: 0,
-					//width: 1.0,
-					//height: 1.0,
-					width: 0.80,
-					height: 1.0,
-					background: new THREE.Color().setRGB( 0.0, 0.0, 0.0 ),
-					//eye: [ 0, 300, 1800 ],
-					eye: [ 0, 2000, 0 ],
-					up: [ 0, 1, 0 ],
-					//fov: 30,
-					fov: 45,
-					updateCamera: function ( camera, scene, mouseX, mouseY ) {
-					  //camera.position.x += mouseX * 0.05;
-					  //camera.position.x = Math.max( Math.min( camera.position.x, 2000 ), -2000 );
-					  //camera.lookAt( scene.position );
-					}
-				},
-				/*{
-					left: 0.5,
-					bottom: 0,
-					width: 0.5,
-					height: 0.5,
-					background: new THREE.Color().setRGB( 0.7, 0.5, 0.5 ),
-					eye: [ 0, 1800, 0 ],
-					up: [ 0, 0, 1 ],
-					fov: 45,
-					updateCamera: function ( camera, scene, mouseX, mouseY ) {
-					  camera.position.x -= mouseX * 0.05;
-					  camera.position.x = Math.max( Math.min( camera.position.x, 2000 ), -2000 );
-					  camera.lookAt( camera.position.clone().setY( 0 ) );
-					}
-				},*/
-				{
-					left: 0.8,
-					bottom: 0.75,
-					width: 0.20,
-					height: 0.25,
-					background: new THREE.Color().setRGB( 0.0, 0.0, 0.0 ),
-					eye: [ 7500,19000,7500 ],
-					up: [ 0, 1, 0 ],
-					//fov: 60,
-					fov: 45,
-					updateCamera: function ( camera, scene, mouseX, mouseY ) {
-					  //camera.position.y -= mouseX * 0.05;
-					  //camera.position.y = Math.max( Math.min( camera.position.y, 1600 ), -1600 );
-					  //camera.lookAt( scene.position );
-					}
-				}
-			];
+var views = [{
+    left: 0,
+    bottom: 0,
+    //width: 1.0,
+    //height: 1.0,
+    width: 0.80,
+    height: 1.0,
+    background: new THREE.Color().setRGB(0.0, 0.0, 0.0),
+    eye: [0, 2000, 0],
+    up: [0, 1, 0],
+    fov: 45,
+    updateCamera: function(camera, scene, mouseX, mouseY) {
+        //camera.position.x += mouseX * 0.05;
+        //camera.position.x = Math.max( Math.min( camera.position.x, 2000 ), -2000 );
+        //camera.lookAt( scene.position );
+    }
+}, {
+    left: 0.8,
+    bottom: 0.75,
+    width: 0.20,
+    height: 0.25,
+    background: new THREE.Color().setRGB(0.0, 0.0, 0.0),
+    eye: [7500, 19000, 7500],
+    up: [0, 1, 0],
+    fov: 45,
+    updateCamera: function(camera, scene, mouseX, mouseY) {
+        //camera.position.y -= mouseX * 0.05;
+        //camera.position.y = Math.max( Math.min( camera.position.y, 1600 ), -1600 );
+        //camera.lookAt( scene.position );
+    }
+}];
 
-			init();
-			animate();
+init();
+animate();
 
-			function getCanvasColor ( color ) {
-	return "rgba(" + color.r + "," + color.g + "," + color.b + "," + color.a + ")";
+function init() {
+
+    container = document.getElementById('container');
+
+    // Viewports for scene
+    for (var ii = 0; ii < views.length; ++ii) {
+
+        var view = views[ii];
+        camera = new THREE.PerspectiveCamera(view.fov, window.innerWidth / window.innerHeight, 1, 100000);
+        camera.position.x = view.eye[0];
+        camera.position.y = view.eye[1];
+        camera.position.z = view.eye[2];
+        camera.up.x = view.up[0];
+        camera.up.y = view.up[1];
+        camera.up.z = view.up[2];
+        view.camera = camera;
+    }
+
+    scene = new THREE.Scene();
+
+    // lights
+    light = new THREE.DirectionalLight(0xffffff);
+    light.position.set(1, 1, 1);
+    scene.add(light);
+    light = new THREE.AmbientLight(0xFFFFFF, 0.2);
+    scene.add(light);
+
+
+    //createSystems();
+    //createSystems_1();
+    //createSystems_2();
+    createSystems_3();
+    createSidebarList();
+
+    var gridScale = 7500;
+    var gridHelper = new THREE.GridHelper(gridScale, 1500, 0x48b0b0, 0x48b0b0);
+    gridHelper.position.y = 0;
+    gridHelper.position.x = (gridScale);
+    gridHelper.position.z = (gridScale);
+    scene.add(gridHelper);
+
+    renderer = new THREE.WebGLRenderer({
+        antialias: true
+    });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    container.appendChild(renderer.domElement);
+
+    stats = new Stats();
+    container.appendChild(stats.dom);
+
+    controls = new THREE.OrbitControls(views[0].camera, renderer.domElement);
+    controls1 = new THREE.OrbitControls(views[1].camera, renderer.domElement);
+    initControlProperties();
+
+    //scene.fog = new THREE.FogExp2( 0x000000, 0.000045 );
+    //renderer.setClearColor( 0xcccccc);
 }
-			
-			function init() {
 
-				container = document.getElementById( 'container' );
+function initControlProperties() {
+    //controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
 
-				for (var ii =  0; ii < views.length; ++ii ) {
+    // Controls of main window
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.25;
+    controls.enableZoom = true;
+    controls.enablePan = true;
+    controls.enableRotate = false;
+    controls.minDistance = 0;
+    controls.maxDistance = 20000;
+    controls.minPolarAngle = 0; // radians
+    controls.minAzimuthAngle = -Math.PI / 2; // radians
+    controls.maxAzimuthAngle = Math.PI / 2; // radians
+    controls.maxPolarAngle = Math.PI / 2;
+    controls.rotateSpeed = 0.25;
+    //controls.panSpeed=0.01;
 
-					var view = views[ii];
-					camera = new THREE.PerspectiveCamera( view.fov, window.innerWidth / window.innerHeight, 1, 100000 );
-					camera.position.x = view.eye[ 0 ];
-					camera.position.y = view.eye[ 1 ];
-					camera.position.z = view.eye[ 2 ];
-					camera.up.x = view.up[ 0 ];
-					camera.up.y = view.up[ 1 ];
-					camera.up.z = view.up[ 2 ];
-					view.camera = camera;
-				}
-				
-				scene = new THREE.Scene();
-
-				// lights
-				light = new THREE.DirectionalLight( 0xffffff );
-				light.position.set( 1, 1, 1 );
-				scene.add( light );
-				
-				light = new THREE.AmbientLight( 0xFFFFFF,0.2 ); 
-				scene.add( light );
-				
-				// create the sphere's material
-				var sphereMaterial =  new THREE.MeshLambertMaterial({color: 0xCC0000});
-	
-				var radius = 50;
-				var segments = 24;
-				var rings = 24;
-		
-		
-		
-		
-		
-		//var total = new THREE.Geometry();
-
-		var sphere1 = new THREE.Mesh(
-
-					  new THREE.SphereGeometry(
-						100,
-						segments,
-						rings),
-
-					  sphereMaterial);
-					  
-					   sphere1.position.x =0;
-					 sphere1.position.z = 0;
-					 sphere1.position.y = 0;
-		scene.add(sphere1);
-		
+    // Controls of small window
+    //controls1.zoomSpeed = 0.75;
+    var positionXZ = 7500;
+    controls1.enableZoom = false;
+    controls1.enablePan = false;
+    controls1.enableRotate = false;
+    views[1].camera.position.set(positionXZ, 19000, positionXZ);
+    views[1].camera.lookAt(new THREE.Vector3(positionXZ, 0, positionXZ));
+}
 
 
-  
-  
-
-		// Create system spheres
-		for (i=0;i<125;i++)
-				{
-				
-				// create a new mesh with
-				// sphere geometry - we will cover
-				// the sphereMaterial next!
-					var sphere = new THREE.Mesh(
-
-					  new THREE.SphereGeometry(
-						radius,
-						segments,
-						rings),
-
-					  sphereMaterial);
-					 
-					 sphere.position.x = (data.systeme[i].x+(30*data.systeme[i].quadrant_x))*50;
-					sphere.position.z = (data.systeme[i].y+(30*data.systeme[i].quadrant_y))*50;
-					 sphere.position.y = 0; 
-				  
-					// add the sphere to the scene
-					scene.add(sphere);
-					//sphere.updateMatrix();
-					//total.merge(sphere.geometry, sphere.matrix);
-					
-					var label = makeTextSprite(data.systeme[i].name, sphere.position.x, sphere.position.y+75,sphere.position.z+0);
-					scene.add( label );
-		
-				}
-				
-
-				
-				createSidebarList();
-				
-				//var mesh = new THREE.Mesh(total, sphereMaterial)
-				//scene.add(mesh);
-				
-
-				var gridScale = 7500;
-				var gridHelper = new THREE.GridHelper( gridScale, 1500, 0x48b0b0, 0x48b0b0 );
-				gridHelper.position.y = 0;
-				gridHelper.position.x = (gridScale);
-				gridHelper.position.z = (gridScale);
-				scene.add( gridHelper );				
-				
-				renderer = new THREE.WebGLRenderer( { antialias: true } );
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				container.appendChild( renderer.domElement );
-
-				stats = new Stats();
-				container.appendChild( stats.dom );
-
-				//document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-
-				// Max
-				controls = new THREE.OrbitControls( views[0].camera, renderer.domElement );
-				controls1 = new THREE.OrbitControls( views[1].camera, renderer.domElement );
-				//controls1.target.set(6000, 0, 6000);
-				//controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
-				controls.enableDamping = true;
-				controls.dampingFactor = 0.25;
-				
-				controls.enableZoom = true;
-				controls.enablePan = true;
-				controls.enableRotate = true;
-				
-				controls.minDistance = 0;
-				controls.maxDistance = 20000;
-				controls.minPolarAngle = 0; // radians
-				controls.minAzimuthAngle = - Math.PI/2; // radians
-				controls.maxAzimuthAngle = Math.PI/2; // radians
-				controls.maxPolarAngle = Math.PI/2; 
-				
-				controls.rotateSpeed = 0.25;
-				//controls1.zoomSpeed = 0.75;
-				
-				//controls.panSpeed=0.01;
-				controls1.enableZoom = false;
-				controls1.enablePan = false;
-				controls1.enableRotate = false;
-				
-				views[1].camera.position.set(7500,19000,7500);
-				views[1].camera.lookAt(new THREE.Vector3(7500,0,7500));
-					
-						
-				//scene.fog = new THREE.FogExp2( 0x000000, 0.000045 );
-				//renderer.setClearColor( 0xcccccc);
-				
-			}
-			
-			function myFunction()
-			{
-				controls.reset();
-			}
-			
-			function createSidebarList()
-			{
-				// Add list items to right sidebar
-				var quadrantId  = -1;
-				var sektorId =-1;
-				var mainul = document.getElementById("list");
-				var quaul;
-				var quali;
-				var sekul;
-				var sekli;
-				//sekli.appendChild(document.createTextNode("Sektor"));
-				
-				
-				for (i=0;i<125;i++){
-					
-				
-					
-					// Conditional add quadrant
-					if (quadrantId != data.systeme[i].quadrant_id)
-					{
-
-						// Prevent if i=0
-						if (quali != null)
-						{
-							quali.appendChild(quaul);
-							//mainul.appendChild(quali);
-							sekul.appendChild(quali);
-						}
-						quali = document.createElement("li");
-						quaul = document.createElement("ul");
-						quali.appendChild(document.createTextNode("Quadrant: "+data.systeme[i].quadrant_id));
-						quali.setAttribute("id", "qua-"+data.systeme[i].quadrant_id);
-						quali.setAttribute("data-x", (((30 * data.systeme[i].quadrant_x)) * 50)+750);
-						quali.setAttribute("data-y", (((30 * data.systeme[i].quadrant_y)) * 50)+750);
-						quali.setAttribute("cam", "2000");
-						quali.setAttribute("data-jstree",'{"icon":"glyphicon glyphicon-folder-open"}');
-						
-						quadrantId=data.systeme[i].quadrant_id;
-						
-						
-					}
-					
-					if (sektorId != data.systeme[i].sektor_id)
-					{
-						// Prevent if i=0
-						if (sekli != null)
-						{
-							sekli.appendChild(sekul);
-							mainul.appendChild(sekli);
-						}
-						sekli = document.createElement("li");
-						sekul = document.createElement("ul");
-						sekli.appendChild(document.createTextNode("Sektor: "+data.systeme[i].sektor_id));
-						sekli.setAttribute("id", "sek-"+data.systeme[i].sektor_id);
-						sekli.setAttribute("data-x", (((30 * data.systeme[i].quadrant_x)) * 50)+1500);
-						sekli.setAttribute("data-y", (((30 * data.systeme[i].quadrant_y)) * 50)+1500);
-						sekli.setAttribute("cam", "4000");
-						sekli.setAttribute("data-jstree",'{"icon":"glyphicon glyphicon-folder-open"}');
-						
-						sektorId=data.systeme[i].sektor_id;
-						
-					}	
-					
-					//Add System
-					var sysli = document.createElement("li");
-					sysli.appendChild(document.createTextNode(data.systeme[i].name));
-					sysli.setAttribute("id", "sys-"+data.systeme[i].id);
-					sysli.setAttribute("data-x", ((data.systeme[i].x + (30 * data.systeme[i].quadrant_x)) * 50));
-					sysli.setAttribute("data-y", ((data.systeme[i].y + (30 * data.systeme[i].quadrant_y)) * 50));
-					sysli.setAttribute("cam", "1000");
-					sysli.setAttribute("data-jstree",'{"icon":"glyphicon glyphicon-globe"}');
-					quaul.appendChild(sysli);	
-				}
-				
-				quali.appendChild(quaul);
-				sekul.appendChild(quali);
-				sekli.appendChild(sekul);
-				mainul.appendChild(sekli);
-
-				//sekli.appendChild(sekul);
-				//mainul.appendChild(sekli);
-				
-				
-			}
-			
-					
 
 
-			function makeTextSprite( message, x, y, z, parameters )
-			{
-				if ( parameters === undefined ) parameters = {};
-				
-				var fontface = parameters.hasOwnProperty("fontface") ? 
-					parameters["fontface"] : "Arial";
-				
-				var fontsize = parameters.hasOwnProperty("fontsize") ? 
-					parameters["fontsize"] : 50;
-				
-				var borderThickness = parameters.hasOwnProperty("borderThickness") ? 
-					parameters["borderThickness"] : 4;
-				
-				var borderColor = parameters.hasOwnProperty("borderColor") ?
-					parameters["borderColor"] : { r:0, g:0, b:0, a:1.0 };
-				
-				var fillColor = parameters.hasOwnProperty("fillColor") ?
-					parameters["fillColor"] : undefined;
+function createSystems() {
 
-				var textColor = parameters.hasOwnProperty("textColor") ?
-					parameters["textColor"] : { r:255, g:255, b:255, a:1.0 };
+    var arraySize = 125;
 
-				var radius = parameters.hasOwnProperty("radius") ?
-							parameters["radius"] : 6;
+    // create the particle variables
+    var particles = new THREE.Geometry();
 
-				var vAlign = parameters.hasOwnProperty("vAlign") ?
-									parameters["vAlign"] : "center";
+    var pMaterial = new THREE.PointsMaterial({
+        color: 0xCC0000,
+        size: 150
+    });
 
-				var hAlign = parameters.hasOwnProperty("hAlign") ?
-									parameters["hAlign"] : "center";
+    // Similar for quality 0 and 1
+    for (i = 0; i < arraySize; i++) {
+        // create a particle with position
+        var pX = (data.systeme[i].x + (30 * data.systeme[i].quadrant_x)) * 50;
+        var pY = 0;
+        var pZ = (data.systeme[i].y + (30 * data.systeme[i].quadrant_y)) * 50;
+        particle = new THREE.Vector3(pX, pY, pZ);
 
-				var canvas = document.createElement('canvas');
-				var context = canvas.getContext('2d');
-				
-				var base = 256;
-				// set a large-enough fixed-size canvas 
-				canvas.width = base*2;
-				canvas.height = base;
-				
-				context.font = fontsize + "px " + fontface;
-				context.textBaseline = "alphabetic";
-				context.textAlign = "left";
-				
-				// get size data (height depends only on font size)
-				var metrics = context.measureText( message );
-				var textWidth = metrics.width;
-				
-				// find the center of the canvas and the half of the font width and height
-				// we do it this way because the sprite's position is the CENTER of the sprite
-				var cx = canvas.width / 2;
-				var cy = canvas.height / 2;
-				var tx = textWidth/ 2.0;
-				var ty = fontsize / 2.0;
+        // add it to the geometry
+        particles.vertices.push(particle);
 
-				// then adjust for the justification
-				if ( vAlign == "bottom")
-					ty = 0;
-				else if (vAlign == "top")
-					ty = fontsize;
-				
-				if (hAlign == "left")
-					tx = textWidth;
-				else if (hAlign == "right")
-					tx = 0;
-				
-				// text color.  Note that we have to do this AFTER the round-rect as it also uses the "fillstyle" of the canvas
-				context.fillStyle = getCanvasColor(textColor);
-				context.fillText( message, cx - tx, cy + ty);
-			   
-				// canvas contents will be used for a texture
-				var texture = new THREE.Texture(canvas) 
-				texture.needsUpdate = true;
+        var label = makeTextSprite(data.systeme[i].name, pX, pY + 75, pZ);
+        scene.add(label);
+    }
 
-				var spriteMaterial = new THREE.SpriteMaterial( { map: texture } );
-				var sprite = new THREE.Sprite( spriteMaterial );
-				
-				// we MUST set the scale to 2:1.  The canvas is already at a 2:1 scale,
-				// but the sprite itself is square: 1.0 by 1.0
-				// Note also that the size of the scale factors controls the actual size of the text-label
-				var spriteScale = 175;
-				sprite.scale.set(spriteScale*2,spriteScale,1);
-				
-				// set the sprite's position.  Note that this position is in the CENTER of the sprite
-				sprite.position.set(x, y, z);
-				
-				return sprite;	
-			}
+    // create the particle system
+    var particleSystem = new THREE.Points(
+        particles,
+        pMaterial);
 
-			function onDocumentMouseMove( event ) {
-				event.preventDefault();
-				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-			}
+    // add it to the scene
+    scene.add(particleSystem);
 
-			function updateSize() {
+}
 
-				if ( windowWidth != window.innerWidth || windowHeight != window.innerHeight ) {
+function createSystems_1() {
 
-					windowWidth  = window.innerWidth;
-					windowHeight = window.innerHeight;
+    var arraySize = 125;
 
-					renderer.setSize ( windowWidth, windowHeight );
-				}
-			}
+    // create the particle variables
+    var particles = new THREE.Geometry();
+
+    // instantiate a loader
+    var loader = new THREE.TextureLoader();
+
+    //allow cross origin loading
+    loader.crossOrigin = '';
+
+    // Load Texture
+    var particleTexture = loader.load("http://threejs.org/examples/textures/sprites/ball.png");
+    var pMaterial = new THREE.PointsMaterial({
+        map: particleTexture,
+        transparent: false,
+        size: 300,
+        color: 0xCC0000
+    });
+
+    // Similar for quality 0 and 1
+    for (i = 0; i < arraySize; i++) {
+        // create a particle with position
+        var pX = (data.systeme[i].x + (30 * data.systeme[i].quadrant_x)) * 50;
+        var pY = 0;
+        var pZ = (data.systeme[i].y + (30 * data.systeme[i].quadrant_y)) * 50;
+        particle = new THREE.Vector3(pX, pY, pZ);
+
+        // add it to the geometry
+        particles.vertices.push(particle);
+
+        var label = makeTextSprite(data.systeme[i].name, pX, pY + 75, pZ);
+        scene.add(label);
+    }
+
+    // create the particle system
+    var particleSystem = new THREE.Points(
+        particles,
+        pMaterial);
+
+    // add it to the scene
+    scene.add(particleSystem);
+}
+
+function createSystems_2() {
+    var arraySize = 125;
+    var total = new THREE.Geometry();
+
+    // Uses sphere geometry
+    var radius = 50;
+    var segments = 24;
+    var rings = segments;
+    // create the sphere's material
+    var sphereMaterial = new THREE.MeshLambertMaterial({
+        color: 0xCC0000
+    });
+
+    // Create system spheres
+    for (i = 0; i < arraySize; i++) {
+        // create a new mesh with
+        // sphere geometry - we will cover
+        // the sphereMaterial next!
+        var sphere = new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+                radius,
+                segments,
+                rings),
+
+            sphereMaterial);
+
+        sphere.position.x = (data.systeme[i].x + (30 * data.systeme[i].quadrant_x)) * 50;
+        sphere.position.z = (data.systeme[i].y + (30 * data.systeme[i].quadrant_y)) * 50;
+        sphere.position.y = 0;
+
+        // add the sphere to the scene
+        sphere.updateMatrix();
+        total.merge(sphere.geometry, sphere.matrix);
+
+        var label = makeTextSprite(data.systeme[i].name, sphere.position.x, sphere.position.y + 75, sphere.position.z + 0);
+        scene.add(label);
+    }
+
+    var mesh = new THREE.Mesh(total, new THREE.MeshLambertMaterial({
+        color: 0xCC0000
+    }))
+    scene.add(mesh);
+}
+
+function createSystems_3() {
+    var arraySize = 125;
+    var group = new THREE.Object3D(); //create an empty container
+
+    // Uses sphere geometry
+    var radius = 50;
+    var segments = 24;
+    var rings = segments;
+    // create the sphere's material
+    var sphereMaterial = new THREE.MeshLambertMaterial({
+        color: 0xCC0000
+    });
+
+    // Create system spheres
+    for (i = 0; i < arraySize; i++) {
+        // create a new mesh with
+        // sphere geometry - we will cover
+        // the sphereMaterial next!
+        var sphere = new THREE.Mesh(
+
+            new THREE.SphereGeometry(
+                radius,
+                segments,
+                rings),
+
+            sphereMaterial);
+
+        sphere.position.x = (data.systeme[i].x + (30 * data.systeme[i].quadrant_x)) * 50;
+        sphere.position.z = (data.systeme[i].y + (30 * data.systeme[i].quadrant_y)) * 50;
+        sphere.position.y = 0;
+
+        // add the sphere to the scene
+        group.add(sphere);
+
+        var label = makeTextSprite(data.systeme[i].name, sphere.position.x, sphere.position.y + 75, sphere.position.z + 0);
+        scene.add(label);
+    }
+
+    scene.add(group);
+
+}
+
+function createSidebarList() {
+    // Add list items to right sidebar
+    var quadrantId = -1;
+    var sektorId = -1;
+    var mainList = document.getElementById("list");
+    var quadrantList;
+    var quadrantListItem;
+    var sectorList;
+    var sectorListItem;
+
+    // Iterate through systems
+    for (i = 0; i < 125; i++) {
+
+        // Add new quadrant to sector
+        if (quadrantId != data.systeme[i].quadrant_id) {
+
+            // Prevent if i==0
+            if (quadrantListItem != null) {
+                quadrantListItem.appendChild(quadrantList);
+                sectorList.appendChild(quadrantListItem);
+            }
+            quadrantListItem = document.createElement("li");
+            quadrantList = document.createElement("ul");
+            quadrantListItem.appendChild(document.createTextNode("Quadrant: " + data.systeme[i].quadrant_id));
+            setNodeAttributes(
+                quadrantListItem,
+                "quadrant-" + data.systeme[i].quadrant_id,
+                (((30 * data.systeme[i].quadrant_x)) * 50) + 750,
+                (((30 * data.systeme[i].quadrant_y)) * 50) + 750,
+                "2000",
+                '{"icon":"glyphicon glyphicon-folder-open"}');
+
+            // Set new Id for quadrant
+            quadrantId = data.systeme[i].quadrant_id;
 
 
-			function animate() {
+        }
 
-				render();
-				stats.update();
+        // Add new sector to mainList
+        if (sektorId != data.systeme[i].sektor_id) {
+            // Prevent if i==0
+            if (sectorListItem != null) {
+                sectorListItem.appendChild(sectorList);
+                mainList.appendChild(sectorListItem);
+            }
+            sectorListItem = document.createElement("li");
+            sectorList = document.createElement("ul");
+            sectorListItem.appendChild(document.createTextNode("Sektor: " + data.systeme[i].sektor_id));
+            setNodeAttributes(
+                sectorListItem,
+                "sector-" + data.systeme[i].sektor_id,
+                ((30 * data.systeme[i].quadrant_x) * 50) + 1500,
+                ((30 * data.systeme[i].quadrant_y) * 50) + 1500,
+                "4000",
+                '{"icon":"glyphicon glyphicon-folder-open"}');
 
-				requestAnimationFrame( animate );
-				
-				// required if controls.enableDamping = true, or if controls.autoRotate = true
-				controls.update(); 
-			}
+            // Set new Id for sector
+            sektorId = data.systeme[i].sektor_id;
 
-			function render() {
+        }
 
-				updateSize();
+        //Add current system to quadrant
+        var systemListItem = document.createElement("li");
+        systemListItem.appendChild(document.createTextNode(data.systeme[i].name));
+        setNodeAttributes(
+            systemListItem,
+            "system-" + data.systeme[i].id,
+            ((data.systeme[i].x + (30 * data.systeme[i].quadrant_x)) * 50),
+            ((data.systeme[i].y + (30 * data.systeme[i].quadrant_y)) * 50),
+            "1000",
+            '{"icon":"glyphicon glyphicon-globe"}');
+        quadrantList.appendChild(systemListItem);
+    }
 
-				for ( var ii = 0; ii < views.length; ++ii ) {
+    // Add the remaining ones
+    quadrantListItem.appendChild(quadrantList);
+    sectorList.appendChild(quadrantListItem);
+    sectorListItem.appendChild(sectorList);
+    mainList.appendChild(sectorListItem);
 
-					view = views[ii];
-					camera = view.camera;
+}
 
-					view.updateCamera( camera, scene, mouseX, mouseY );
+function setNodeAttributes(node, id, dataX, dataY, distance, icon) {
+    node.setAttribute("id", id);
+    node.setAttribute("data-x", dataX);
+    node.setAttribute("data-y", dataY);
+    node.setAttribute("cam", distance);
+    node.setAttribute("data-jstree", icon);
+}
 
-					var left   = Math.floor( windowWidth  * view.left );
-					var bottom = Math.floor( windowHeight * view.bottom );
-					var width  = Math.floor( windowWidth  * view.width );
-					var height = Math.floor( windowHeight * view.height );
-					renderer.setViewport( left, bottom, width, height );
-					renderer.setScissor( left, bottom, width, height );
-					renderer.setScissorTest( true );
-					renderer.setClearColor( view.background );
 
-					camera.aspect = width / height;
-					camera.updateProjectionMatrix();
-										
-					renderer.render( scene, camera );
-				}
-			}
-			
-			$('#jstree').on("select_node.jstree", function (e, data) {
-				views[0].camera.position.x=parseInt(data.node.li_attr["data-x"]); 
-				views[0].camera.position.z=parseInt(data.node.li_attr["data-y"]); 
-				views[0].camera.position.y=parseInt(data.node.li_attr["cam"]); 
-				controls.target = new THREE.Vector3(parseInt(data.node.li_attr["data-x"]), 0, parseInt(data.node.li_attr["data-y"]));			
-			});
+function getCanvasColor(color) {
+    return "rgba(" + color.r + "," + color.g + "," + color.b + "," + color.a + ")";
+}
+
+
+function makeTextSprite(message, x, y, z, parameters) {
+    if (parameters === undefined) parameters = {};
+
+    var fontface = parameters.hasOwnProperty("fontface") ?
+        parameters["fontface"] : "Arial";
+
+    var fontsize = parameters.hasOwnProperty("fontsize") ?
+        parameters["fontsize"] : 50;
+
+    var borderThickness = parameters.hasOwnProperty("borderThickness") ?
+        parameters["borderThickness"] : 4;
+
+    var borderColor = parameters.hasOwnProperty("borderColor") ?
+        parameters["borderColor"] : {
+            r: 0,
+            g: 0,
+            b: 0,
+            a: 1.0
+        };
+
+    var fillColor = parameters.hasOwnProperty("fillColor") ?
+        parameters["fillColor"] : undefined;
+
+    var textColor = parameters.hasOwnProperty("textColor") ?
+        parameters["textColor"] : {
+            r: 255,
+            g: 255,
+            b: 255,
+            a: 1.0
+        };
+
+    var radius = parameters.hasOwnProperty("radius") ?
+        parameters["radius"] : 6;
+
+    var vAlign = parameters.hasOwnProperty("vAlign") ?
+        parameters["vAlign"] : "center";
+
+    var hAlign = parameters.hasOwnProperty("hAlign") ?
+        parameters["hAlign"] : "center";
+
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+
+    var base = 256;
+    // set a large-enough fixed-size canvas 
+    canvas.width = base * 2;
+    canvas.height = base;
+
+    context.font = fontsize + "px " + fontface;
+    context.textBaseline = "alphabetic";
+    context.textAlign = "left";
+
+    // get size data (height depends only on font size)
+    var metrics = context.measureText(message);
+    var textWidth = metrics.width;
+
+    // find the center of the canvas and the half of the font width and height
+    // we do it this way because the sprite's position is the CENTER of the sprite
+    var cx = canvas.width / 2;
+    var cy = canvas.height / 2;
+    var tx = textWidth / 2.0;
+    var ty = fontsize / 2.0;
+
+    // then adjust for the justification
+    if (vAlign == "bottom")
+        ty = 0;
+    else if (vAlign == "top")
+        ty = fontsize;
+
+    if (hAlign == "left")
+        tx = textWidth;
+    else if (hAlign == "right")
+        tx = 0;
+
+    // text color.  Note that we have to do this AFTER the round-rect as it also uses the "fillstyle" of the canvas
+    context.fillStyle = getCanvasColor(textColor);
+    context.fillText(message, cx - tx, cy + ty);
+
+    // canvas contents will be used for a texture
+    var texture = new THREE.Texture(canvas)
+    texture.needsUpdate = true;
+
+    var spriteMaterial = new THREE.SpriteMaterial({
+        map: texture
+    });
+    var sprite = new THREE.Sprite(spriteMaterial);
+
+    // we MUST set the scale to 2:1.  The canvas is already at a 2:1 scale,
+    // but the sprite itself is square: 1.0 by 1.0
+    // Note also that the size of the scale factors controls the actual size of the text-label
+    var spriteScale = 175;
+    sprite.scale.set(spriteScale * 2, spriteScale, 1);
+
+    // set the sprite's position.  Note that this position is in the CENTER of the sprite
+    sprite.position.set(x, y, z);
+
+    return sprite;
+}
+
+function updateSize() {
+
+    if (windowWidth != window.innerWidth || windowHeight != window.innerHeight) {
+
+        windowWidth = window.innerWidth;
+        windowHeight = window.innerHeight;
+
+        renderer.setSize(windowWidth, windowHeight);
+    }
+}
+
+
+function animate() {
+
+    render();
+    stats.update();
+
+    requestAnimationFrame(animate);
+
+    // required if controls.enableDamping = true, or if controls.autoRotate = true
+    controls.update();
+}
+
+function render() {
+
+    updateSize();
+
+    for (var ii = 0; ii < views.length; ++ii) {
+
+        view = views[ii];
+        camera = view.camera;
+
+        view.updateCamera(camera, scene, mouseX, mouseY);
+
+        var left = Math.floor(windowWidth * view.left);
+        var bottom = Math.floor(windowHeight * view.bottom);
+        var width = Math.floor(windowWidth * view.width);
+        var height = Math.floor(windowHeight * view.height);
+        renderer.setViewport(left, bottom, width, height);
+        renderer.setScissor(left, bottom, width, height);
+        renderer.setScissorTest(true);
+        renderer.setClearColor(view.background);
+
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+
+        renderer.render(scene, camera);
+    }
+}
+
+// Move camera to position on click
+$('#jstree').on("select_node.jstree", function(e, data) {
+    var dataX = parseInt(data.node.li_attr["data-x"]);
+    var dataY = parseInt(data.node.li_attr["data-y"]);
+    var distance = parseInt(data.node.li_attr["cam"]);
+    views[0].camera.position.set(dataX, distance, dataY);
+    controls.target = new THREE.Vector3(dataX, 0, dataY);
+});
+
+function resetControls() {
+    controls.reset();
+}
+
+function toggleRotation() {
+    if (controls.enableRotate == true) {
+        controls.enableRotate = false;
+        alert('Rotation off');
+    } else {
+        controls.enableRotate = true;
+        alert('Rotation on');
+    }
+}
+
+function cameraLookDownAt(camera, x, y, z) {
+    camera.position.set(x, y, z);
+    camera.lookAt(new THREE.Vector3(x, 0, z));
+}
