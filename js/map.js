@@ -213,7 +213,7 @@ function createSystems() {
         // add it to the geometry
         particles.vertices.push(particle);
 
-        var label = makeTextSprite(data.systeme[i].name, pX, pY + 75, pZ);
+        var label = makeTextSprite(data.systeme[i].name, pX, pY + 0, pZ);
         scene.add(label);
     }
 
