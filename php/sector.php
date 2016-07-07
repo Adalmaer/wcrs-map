@@ -31,7 +31,7 @@ require_once 'Page.php';
  * @author   Bernhard Kreling, <b.kreling@fbi.h-da.de> 
  * @author   Ralf Hahn, <ralf.hahn@h-da.de> 
  */
-class _System extends Page
+class _Sector extends Page
 {
     // to do: declare reference variables for members 
     // representing substructures/blocks
@@ -72,19 +72,12 @@ class _System extends Page
     protected function getViewData()
     {
         // to do: fetch data for this view from the database
-		$query ="SELECT system_id AS systemId, system_name AS systemName, faction_id AS factionId, system_x AS systemX, system_y AS systemY, system_z AS systemZ, quadrant_id AS quadrantId, system_status AS systemStatus FROM wcrs_system ORDER BY system_id DESC;";
+		$query ="SELECT sector_id AS sectorId, sector_name AS sectorName FROM wcrs_sector ORDER BY sector_id DESC;";
 		if ($Recordset = $this->_database->query($query)) {
 			$a = array();
-			//[X][0] = HTML-Tag-Names //[X][1] = Table Header // [X][2] = Value
-			$a[0][0] = "systemId";$a[0][1]='SystemID';$a[0][2]='systemId';
-			$a[1][0] = "systemName";$a[1][1] = "Name";$a[1][2] = "systemName";
-			$a[2][0] = "factionId";$a[2][1] = "FaktionID";$a[2][2] = "factionId";
-			$a[3][0] = "systemX";$a[3][1] = "X";$a[3][2] = "systemX";
-			$a[4][0] = "systemY";$a[4][1] = "Y";$a[4][2] = "systemY";
-			$a[5][0] = "systemZ";$a[5][1] = "Z";$a[5][2] = "systemZ";
-			$a[6][0] = "quadrantId";$a[6][1] = "Quadrant";$a[6][2] = "quadrantId";
-			$a[7][0] = "systemStatus";$a[7][1] = "Status";$a[7][2] = "systemStatus";
-			$this->content_html .= createTable($Recordset,$a,'Systeme','addSystem','editSystem','deleteSystem');
+			$a[0][0] = "sectorId";$a[0][1]='SektorID';$a[0][2]='sectorId';
+			$a[1][0] = "sectorName";$a[1][1] = "Name";$a[1][2] = "sectorName";
+			$this->content_html .= createTable($Recordset,$a,'Sektoren','addSector','editSector','deleteSector');
 			
 			/* free result set */
 			$Recordset->free();
@@ -125,20 +118,23 @@ class _System extends Page
      * @return none 
      */
     protected function processReceivedData() 
-    {
-		
+    {	
         parent::processReceivedData();
-		// to do: call processReceivedData() for all members
-		if (isset($_POST['addSystem'])) {
-			$arguments = array();
-			$arguments[0] = $this->_database->real_escape_string($_POST['systemName']);
-			$arguments[1] =  $this->_database->real_escape_string($_POST['factionId']);
-			$arguments[2] =  $this->_database->real_escape_string($_POST['systemX']);
-			$arguments[3] =  $this->_database->real_escape_string($_POST['systemY']);
-			$arguments[4] =  $this->_database->real_escape_string($_POST['systemZ']);
-			$arguments[5] =  $this->_database->real_escape_string($_POST['quadrantId']);
-			$arguments[6] =  $this->_database->real_escape_string($_POST['systemStatus']);
-			insertSystem($arguments, $this->_database);		
+        // to do: call processReceivedData() for all members
+		if (isset($_POST['addSector'])) {
+			$arguments[0] = $this->_database->real_escape_string($_POST['sectorName']);
+			
+			if (is_string($arguments[0])){
+				if (strlen($arguments[0])>0){
+					insertSector($arguments, $this->_database);		
+				}
+				else{
+					echo "Fehlerhafte Eingabe (Länge).";
+				}
+			}
+			else{
+				echo "Fehlerhafte Eingabe.";
+			}
 		}
     }
 
@@ -157,7 +153,7 @@ class _System extends Page
     public static function main() 
     {
         try {
-            $page = new _System();
+            $page = new _Sector();
             $page->processReceivedData();
             $page->generateView();
         }
@@ -170,7 +166,7 @@ class _System extends Page
 
 // This call is starting the creation of the page. 
 // That is input is processed and output is created.
-_System::main();
+_Sector::main();
 
 // Zend standard does not like closing php-tag!
 // PHP doesn't require the closing tag (it is assumed when the file ends). 

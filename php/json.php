@@ -1,4 +1,4 @@
-<?php	// UTF-8 marker äöüÄÖÜß€
+﻿<?php	// UTF-8 marker äöüÄÖÜß€
 /**
  * Class PageTemplate for the exercises of the EWA lecture
  * Demonstrates use of PHP including class and OO.
@@ -31,7 +31,7 @@ require_once 'Page.php';
  * @author   Bernhard Kreling, <b.kreling@fbi.h-da.de> 
  * @author   Ralf Hahn, <ralf.hahn@h-da.de> 
  */
-class _System extends Page
+class _Jump extends Page
 {
     // to do: declare reference variables for members 
     // representing substructures/blocks
@@ -71,24 +71,76 @@ class _System extends Page
      */
     protected function getViewData()
     {
-        // to do: fetch data for this view from the database
-		$query ="SELECT system_id AS systemId, system_name AS systemName, faction_id AS factionId, system_x AS systemX, system_y AS systemY, system_z AS systemZ, quadrant_id AS quadrantId, system_status AS systemStatus FROM wcrs_system ORDER BY system_id DESC;";
-		if ($Recordset = $this->_database->query($query)) {
-			$a = array();
-			//[X][0] = HTML-Tag-Names //[X][1] = Table Header // [X][2] = Value
-			$a[0][0] = "systemId";$a[0][1]='SystemID';$a[0][2]='systemId';
-			$a[1][0] = "systemName";$a[1][1] = "Name";$a[1][2] = "systemName";
-			$a[2][0] = "factionId";$a[2][1] = "FaktionID";$a[2][2] = "factionId";
-			$a[3][0] = "systemX";$a[3][1] = "X";$a[3][2] = "systemX";
-			$a[4][0] = "systemY";$a[4][1] = "Y";$a[4][2] = "systemY";
-			$a[5][0] = "systemZ";$a[5][1] = "Z";$a[5][2] = "systemZ";
-			$a[6][0] = "quadrantId";$a[6][1] = "Quadrant";$a[6][2] = "quadrantId";
-			$a[7][0] = "systemStatus";$a[7][1] = "Status";$a[7][2] = "systemStatus";
-			$this->content_html .= createTable($Recordset,$a,'Systeme','addSystem','editSystem','deleteSystem');
-			
-			/* free result set */
-			$Recordset->free();
-		}		
+        // to do: fetch data for this view from the 
+		$queryList = array();
+		/*$queryList[0][0] ="SELECT system_id AS systemId, system_name as systemName, faction_id as factionId, system_x as systemX, system_y as systemY, system_z as systemZ, quadrant_id as quadrantId, system_status as systemStatus FROM wcrs_system ORDER BY sector_id ASC, quadrant_id ASC, system_id ASC";
+		$queryList[0][1] = "system";
+		$queryList[1][0] ="SELECT quadrant_id as quadrantId, quadrant_name as quadrantName, quadrant_x as quadrantX, quadrant_y as quadrantY, sector_id as sectorId FROM wcrs_quadrant ORDER BY quadrant_id ASC";
+		$queryList[1][1] = "quadrant";
+		$queryList[2][0] ="SELECT sector_id as sectorId, sector_name as sectorName FROM wcrs_sector ORDER BY sector_id ASC";
+		$queryList[2][1] = "sector";
+		$queryList[3][0] ="SELECT jump_id AS jumpId, system_id_1 as systemId1, system_id_2 as systemId2, jump_status AS jumpStatus FROM wcrs_jump ORDER BY jump_id ASC";
+		$queryList[3][1] = "jump";
+		$queryList[4][0] ="SELECT faction_id, faction_name, color_code FROM wcrs_faction ORDER BY faction_id ASC";
+		$queryList[4][1] = "faction";
+		$queryList[5][0] ="SELECT fleet_id, fleet_name, faction_id, fleet_image, system_id, fleet_status FROM wcrs_fleet ORDER BY fleet_id ASC";
+		$queryList[5][1] = "fleet";*/
+		
+		$queryList[0][0] = "SELECT system_id AS systemId, system_name as systemName, system_x as systemX, system_y as systemY, system_z AS systemZ, faction_id AS factionId, q.quadrant_id as quadrantId, quadrant_name AS quadrantName, quadrant_x as quadrantX, quadrant_y AS quadrantY, r.sector_id AS sectorId, r.sector_name AS sectorName FROM wcrs_system s, wcrs_quadrant q, wcrs_sector r WHERE s.quadrant_id=q.quadrant_id AND q.sector_id = r.sector_id ORDER BY r.sector_id ASC, s.quadrant_id ASC, s.system_id ASC;";
+		$queryList[0][1] = "system";
+		
+		$queryList[1][0] = "SELECT fleet_id AS fleetId, fleet_name AS fleetName, fleet_image as fleetImage, system_x AS systemX, system_y AS systemY, quadrant_x AS quadrantX, quadrant_y AS quadrantY FROM wcrs_system s, wcrs_quadrant q, wcrs_fleet f WHERE s.quadrant_id=q.quadrant_id AND s.system_id = f.system_id AND fleet_status >0 ORDER BY fleet_id ASC;";
+		$queryList[1][1] = "fleet";
+		
+		
+		$json = '';
+		
+		foreach ($queryList as $b) {		
+		$this->content_html .= '<p>';
+				if ($Recordset = $this->_database->query($b[0])) {			
+					$rows = array();
+					while ($row = $Recordset->fetch_assoc()) {
+						$rows[] = $row;				
+					}
+					$this->content_html .= 'var '. $b[1].'List = {'. $b[1] .'s:'.stripslashes(json_encode($rows)).'};';
+					$json .= 'var '. $b[1].'List = {'. $b[1] .'s:'.stripslashes(json_encode($rows)).'};';
+
+					/* free result set */
+					$Recordset->free();
+				}
+				//$json .= '\\r\\n';
+				$this->content_html .= '<p/>';
+		}
+		
+		$filename = 'js/data.js';
+		if (is_writable($filename)) {
+
+			// Wir öffnen $filename im "Anhänge" - Modus.
+			// Der Dateizeiger befindet sich am Ende der Datei, und
+			// dort wird $somecontent später mit fwrite() geschrieben.
+			if (!$handle = fopen($filename, "w")) {
+				 updateNotification($filename, 'Kann die Datei nicht öffnen',1);
+				 exit;
+			}
+
+			// Schreibe $somecontent in die geöffnete Datei.
+			if (!fwrite($handle, $json)) {
+				updateNotification($filename, 'Kann die Datei nicht schreiben',1);
+				exit;
+			}
+			updateNotification($filename, 'Datei wurde beschrieben',0);
+
+			fclose($handle);
+
+		} else {
+			updateNotification($filename, 'Die Datei ist nicht schreibbar',1);
+	}
+		
+		
+		
+		
+
+		
     }
     
     /**
@@ -126,20 +178,8 @@ class _System extends Page
      */
     protected function processReceivedData() 
     {
-		
         parent::processReceivedData();
-		// to do: call processReceivedData() for all members
-		if (isset($_POST['addSystem'])) {
-			$arguments = array();
-			$arguments[0] = $this->_database->real_escape_string($_POST['systemName']);
-			$arguments[1] =  $this->_database->real_escape_string($_POST['factionId']);
-			$arguments[2] =  $this->_database->real_escape_string($_POST['systemX']);
-			$arguments[3] =  $this->_database->real_escape_string($_POST['systemY']);
-			$arguments[4] =  $this->_database->real_escape_string($_POST['systemZ']);
-			$arguments[5] =  $this->_database->real_escape_string($_POST['quadrantId']);
-			$arguments[6] =  $this->_database->real_escape_string($_POST['systemStatus']);
-			insertSystem($arguments, $this->_database);		
-		}
+        // to do: call processReceivedData() for all members
     }
 
     /**
@@ -157,7 +197,7 @@ class _System extends Page
     public static function main() 
     {
         try {
-            $page = new _System();
+            $page = new _Jump();
             $page->processReceivedData();
             $page->generateView();
         }
@@ -170,7 +210,7 @@ class _System extends Page
 
 // This call is starting the creation of the page. 
 // That is input is processed and output is created.
-_System::main();
+_Jump::main();
 
 // Zend standard does not like closing php-tag!
 // PHP doesn't require the closing tag (it is assumed when the file ends). 
