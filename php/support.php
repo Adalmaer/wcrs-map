@@ -21,29 +21,37 @@
 		return $retVal;
 	}
 
+	/*
 	function createRow($a,$row)
 	{
 		$retVal = '';
 		$index = 0;
-		//$id=0;
 
 		foreach ($a as $b) {
 			
 			if($index==0)
 			{
 				$retVal .=  ('<th scope="row">' . htmlentities($row[$b[2]]) . "</th>");
-				//$id=$row[$b[2]];
 			}
 			else{
-				 //$retVal .=  ('<td><input class="form-control" type="text" name="'.htmlentities($b[0]).'" placeholder="'. htmlentities($row[$b[2]]) .'"></td>');
-				 $retVal .=  ('<td>'. htmlentities(stripslashes($row[$b[2]])) .'</td>');
+				 //$retVal .=  ('<td>'. htmlentities(stripslashes($row[$b[2]])) .'</td>');
+				 
+				 $retVal .= '<td><div class="form-group"><label class="sr-only" for="'.htmlentities($b[0]).'">'.htmlentities($b[1]).'</label>
+				 <input type="text" name="'.htmlentities($b[0]).'" class="form-control" id="'.htmlentities($b[0]).'" placeholder="'.htmlentities(stripslashes($row[$b[2]])).'" required>
+					</div></td>';
+				 
+				 
 			}
 		
 		$index++;
 		}
 		return $retVal;
 	}
-
+	
+	
+	
+	
+	
 	function createTable($result,$a,$title,$buttonName,$buttonName2,$buttonName3){
 		 $retVal = '';
 		 $retVal .= ('<h1>'.htmlentities($title).'</h1>');
@@ -55,7 +63,7 @@
 		
 		 $retVal .= ('<th>Actions</th></tr></thead><tbody>');
 		
-		/* fetch associative array */
+		
 		$retVal .= createAdd($a, $buttonName);
 		while ($row = $result->fetch_assoc()) {
 			 $retVal .= ('<tr><form name="xxx" action="' . htmlentities($_SERVER['PHP_SELF']) . '" method="post">');
@@ -107,11 +115,175 @@ function createAdd($a,$buttonName)
 
 	$retVal .=  '<td><button type="submit" name="'.htmlentities($buttonName).'" value="Add" class="btn btn-default"><span class="glyphicon glyphicon-plus"></span> Add</button></form></tr>';
 	return $retVal;
+}*/
+
+function createRow($a,$row)
+	{
+		$retVal = '';
+		$index = 0;
+		$identifier = $row['systemId'];
+		//$identifier = $row($a[0][2]);
+
+		foreach ($a as $b) {
+			
+			if($index==0)
+			{
+				//$retVal .=  ('<td>'. htmlentities(stripslashes($row[$b[2]])) .'</td>');
+				$retVal .=  '<div class=" col-sm-'.$b[3].'">';
+					$retVal .= '<div class="form-group">';
+						$retVal .= '<label class="sr-only" for="'.htmlentities($b[0]).'-'.$identifier.'">Disabled input</label>';
+						$retVal .=  '<input type="text" name="'.htmlentities($b[0]).'" id="'.htmlentities($b[0]).'-'.$identifier.'" class="form-control" placeholder="'.htmlentities($row[$b[2]]).'" disabled>';
+					$retVal .= '</div>';
+				$retVal .= "</div>";		
+			}
+			else{
+				 //$retVal .=  ('<td>'. htmlentities(stripslashes($row[$b[2]])) .'</td>');
+				 $retVal .= '<div class=" col-sm-'.$b[3].'"><div class="form-group"><label class="sr-only" for="'.htmlentities($b[0]).'-'.$identifier.'">'.htmlentities($b[1]).'</label>
+				 <input type="text" name="'.htmlentities($b[0]).'" class="form-control" id="'.htmlentities($b[0]).'-'.$identifier.'" placeholder="'.htmlentities(stripslashes($row[$b[2]])).'" value="'.htmlentities(stripslashes($row[$b[2]])).'" required>
+					</div></div>';
+				 
+				 
+			}
+		
+		$index++;
+		}
+		return $retVal;
+	}
+
+	function createTable($result,$a,$title,$buttonName,$buttonName2,$buttonName3){
+		 $retVal = '';
+		 
+		// $retVal .='<nav class="navbar navbar-inverse" data-spy="affix" data-offset-top="197">aaaa';
+		//$retVal .='</nav>';
+
+		 $headerHTML='';
+		 $retVal .= ('<h1>'.htmlentities($title).'</h1>');
+		
+		// Tabelle starten
+		 $retVal .= '<div class="container-fluid">';
+		 $headerHTML .= '<div class="row">';
+			
+		// Headerspalten erzeugen
+		foreach ($a as $b) {
+			$headerHTML .= '<div class=" text-center col-sm-'.$b[3].'"><strong>'.htmlentities($b[1]).'</strong></div>';
+		}
+		
+		 //Schließe Kopfreihe ab
+		$headerHTML .= ('<div class=" text-center col-sm-1"><strong>Aktionen</strong></div></div>');
+		
+		$retVal .= $headerHTML;
+		
+		// fetch associative array 
+		$retVal .= createAdd($a, $buttonName);
+		$retVal .= '<hr>';
+		
+		$retVal .= $headerHTML;
+		
+		while ($row = $result->fetch_assoc()) {
+			 $retVal .= ('<div class="row"><form name="form-'.$row[$a[0][2]].'" action="' . htmlentities($_SERVER['PHP_SELF']) . '" method="post">');
+			
+			// Erzeuge alle Reihen der Tabellen
+			$retVal .= createRow($a,$row);
+			$retVal .= '<div class=" text-center col-sm-1">';
+			$retVal .= '<input type="hidden" name="'.htmlentities($a[0][0]).'" value="'. htmlentities($row[$a[0][2]]).'"/>';
+			$retVal .= '<div class="btn-group btn-group-flex" role="group" aria-label="">';
+			
+			$retVal .= createEditButton($buttonName2);  
+			//$retVal .= createDeleteButton($buttonName3);
+			$retVal .= ("</div></div></form></div>");
+		}
+		
+		 $retVal .= '</div>';
+		return $retVal;
+	}
+
+
+function createAdd($a,$buttonName)
+{
+	$retVal='';
+	$firstColumn = false;
+	
+	//$retVal .= '<div class="panel panel-default"><div class="panel-body">';
+	$retVal .=  '<div class="row"><form class="form" action="' . htmlentities($_SERVER['PHP_SELF']) . '" method="post">';
+	foreach ($a as $b) {
+	
+	if($firstColumn==false)
+	{
+		$retVal .=  '<div class=" col-sm-'.$b[3].'">
+		 <div class="form-group">
+			  <label class="sr-only" for="'.htmlentities($b[0]).'">Disabled input</label>
+			  <input type="text" name="'.htmlentities($b[0]).'" id="'.htmlentities($b[0]).'" class="form-control" placeholder="Neu" disabled>
+			</div>
+		</div>';
+		$firstColumn = true;
+	}
+	else{
+		$retVal .=  '<div class=" col-sm-'.$b[3].'">
+		  <div class="form-group">
+			<label class="sr-only" for="'.htmlentities($b[0]).'">'.htmlentities($b[1]).'</label>
+			<input type="text" name="'.htmlentities($b[0]).'" class="form-control" id="'.htmlentities($b[0]).'" placeholder="'.htmlentities($b[1]).'" required>
+		  </div>
+		</div>';
+	}
+	
+	}
+
+	$retVal .=  '<div class=" col-sm-1"><button type="submit" name="'.htmlentities($buttonName).'" value="Add" class="btn btn-default"><span class="glyphicon glyphicon-plus"></span> Add</button></div></form></div>';
+
+	//$retVal .=  '</div></div>';
+	return $retVal;
 }
+
+
+function editTemplate($array, $mysqli, $n){
+	//echo 'Entered';
+	$stmt;// = $mysqli->prepare("UPDATE wcrs_jump SET system_id_1=?,system_id_2=?,jump_status=? WHERE jump_id=?");
+	//$stmt->bind_param("iiii",$array[1], $array[2],$array[3],$array[0]);
+
+	switch ($n) {
+    case 'System':
+        $stmt = $mysqli->prepare("UPDATE wcrs_system SET system_name=?, system_x=?, system_y=?, system_z=?, faction_id=?, quadrant_id=?, system_status=? WHERE system_id=?");
+		$stmt->bind_param("siiiiiii",$array[0], $array[1],$array[2],$array[3],$array[4],$array[5],$array[6],$array[7]);
+        break;
+    case 'Quadrant':
+        $stmt = $mysqli->prepare("UPDATE wcrs_quadrant SET quadrant_name=?, quadrant_x=?, quadrant_y=?, sector_id=? WHERE quadrant_id=?");
+		$stmt->bind_param("siiii",$array[0], $array[1],$array[2],$array[3],$array[4]);
+        break;
+    case 'Sektor':
+        $stmt = $mysqli->prepare("UPDATE wcrs_sector SET sector_name=? WHERE sector_id=?");
+		$stmt->bind_param("si", $array[0],$array[1]);
+        break;
+	case 'Jump':
+        $stmt = $mysqli->prepare("UPDATE wcrs_jump SET system_id_1=?,system_id_2=?,jump_status=? WHERE jump_id=?");
+		$stmt->bind_param("iiii",$array[0], $array[1], $array[2],$array[3]);
+        break;
+	case 'Faktion':
+        $stmt = $mysqli->prepare("UPDATE wcrs_faction SET faction_name=?, color_code=? WHERE faction_id=?");
+		$stmt->bind_param("ssi",$array[0], $array[1], $array[2]);
+        break;
+	case 'Flotte':
+        $stmt = $mysqli->prepare("UPDATE wcrs_fleet SET fleet_name=?, faction_id=?, fleet_image=?, system_id=?, fleet_status=? WHERE fleet_id=?");
+		$stmt->bind_param("sisiii",$array[0], $array[1], $array[2],$array[3],$array[4],$array[5]);
+        break;
+
+    default:
+        echo 'Nix';
+	}
+
+	if (!$stmt->execute()) {
+		updateNotification($array[0], "Execute failed: (" . $stmt->errno . ") " . $stmt->error,1);
+	}
+	else{
+		updateNotification($array[0], $n.' aktualisiert',0);
+	}
+	$stmt->close();
+
+}
+
 
 function insertSystem($array, $mysqli){
 	
-	$stmt = $mysqli->prepare("INSERT INTO wcrs_system (system_name, faction_id, system_x, system_y, system_z, quadrant_id, system_status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+	$stmt = $mysqli->prepare("INSERT INTO wcrs_system (system_name, system_x, system_y, system_z, faction_id, quadrant_id, system_status) VALUES (?, ?, ?, ?, ?, ?, ?)");
 	$stmt->bind_param("siiiiii",$array[0], $array[1],$array[2],$array[3],$array[4],$array[5],$array[6]);
 	
 	if (!$stmt->execute()) {
@@ -168,9 +340,7 @@ function insertSector($array, $mysqli){
 	$stmt->close();
 }
 
-
 function insertFaction($array, $mysqli){
-
 
 	$stmt = $mysqli->prepare("INSERT INTO wcrs_faction (faction_name, color_code) VALUES (?,?)");
 	$stmt->bind_param("ss",$array[0],$array[1]);

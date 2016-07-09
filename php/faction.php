@@ -75,9 +75,9 @@ class _Faction extends Page
 		$query ="SELECT faction_id AS factionId, faction_name AS factionName, color_code AS colorCode FROM wcrs_faction ORDER BY faction_id DESC;";
 		if ($Recordset = $this->_database->query($query)) {
 			$a = array();
-			$a[0][0] = "factionId";$a[0][1]='FaktionID';$a[0][2]='factionId';
-			$a[1][0] = "factionName";$a[1][1] = "Name";$a[1][2] = "factionName";
-			$a[2][0] = "colorCode";$a[2][1] = "Farbcode";$a[2][2] = "colorCode";
+			$a[0][0] = "factionId";$a[0][1]='FaktionID';$a[0][2]='factionId';$a[0][3]=2;
+			$a[1][0] = "factionName";$a[1][1] = "Name";$a[1][2] = "factionName";$a[1][3]=6;
+			$a[2][0] = "colorCode";$a[2][1] = "Farbcode";$a[2][2] = "colorCode";$a[2][3]=3;
 			$this->content_html .= createTable($Recordset,$a,'Faktionen','addFaction','editFaction','deleteFaction');
 			
 			/* free result set */
@@ -123,23 +123,24 @@ class _Faction extends Page
         parent::processReceivedData();
         // to do: call processReceivedData() for all members
 		if (isset($_POST['addFaction'])) {
-			$arguments[0] = $this->_database->real_escape_string($_POST['factionName']);
-			$arguments[1] = $this->_database->real_escape_string($_POST['colorCode']);
+			$arguments[0] = $_POST['factionName'];
+			$arguments[1] = $_POST['colorCode'];
 			
-			if (is_string($arguments[0]) && is_string($arguments[1]))
+			if (strlen($arguments[0])>0 && strlen($arguments[1])==6)
 			{
-			
-				if (strlen($arguments[0])>0 && strlen($arguments[1])==6)
-				{
-					insertFaction($arguments, $this->_database);
-				}
-				else
-				{
-					echo "Eingabe zu lang/kurz!";
-				}
+				insertFaction($arguments, $this->_database);
 			}
-			else{
-				echo "Keine Strings";
+		}else{
+			if (isset($_POST['editFaction'])) {	
+			$arguments[0] = $_POST['factionName'];
+			$arguments[1] = $_POST['colorCode'];
+			$arguments[2] = $_POST['factionId'];
+			
+			if (strlen($arguments[0])>0 && strlen($arguments[1])==6 && $arguments[2]>0)
+			{
+				editTemplate($arguments, $this->_database,'Faktion');	
+			}	
+				
 			}
 		}
     }

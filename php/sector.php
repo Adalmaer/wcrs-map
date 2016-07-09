@@ -75,8 +75,8 @@ class _Sector extends Page
 		$query ="SELECT sector_id AS sectorId, sector_name AS sectorName FROM wcrs_sector ORDER BY sector_id DESC;";
 		if ($Recordset = $this->_database->query($query)) {
 			$a = array();
-			$a[0][0] = "sectorId";$a[0][1]='SektorID';$a[0][2]='sectorId';
-			$a[1][0] = "sectorName";$a[1][1] = "Name";$a[1][2] = "sectorName";
+			$a[0][0] = "sectorId";$a[0][1]='SektorID';$a[0][2]='sectorId';$a[0][3]=2;
+			$a[1][0] = "sectorName";$a[1][1] = "Name";$a[1][2] = "sectorName";$a[1][3]=9;
 			$this->content_html .= createTable($Recordset,$a,'Sektoren','addSector','editSector','deleteSector');
 			
 			/* free result set */
@@ -122,18 +122,21 @@ class _Sector extends Page
         parent::processReceivedData();
         // to do: call processReceivedData() for all members
 		if (isset($_POST['addSector'])) {
-			$arguments[0] = $this->_database->real_escape_string($_POST['sectorName']);
+			$arguments[0] = $_POST['sectorName'];
 			
-			if (is_string($arguments[0])){
-				if (strlen($arguments[0])>0){
-					insertSector($arguments, $this->_database);		
-				}
-				else{
-					echo "Fehlerhafte Eingabe (Länge).";
-				}
+			if (strlen($arguments[0])>0){
+				insertSector($arguments, $this->_database);		
 			}
-			else{
-				echo "Fehlerhafte Eingabe.";
+		}else{
+			if (isset($_POST['editSector'])) {	
+				$arguments[0] = $_POST['sectorName'];
+				$arguments[1] = $_POST['sectorId'];
+						
+				if ($arguments[1] > 0 && strlen($arguments[0])>0)
+				{
+					editTemplate($arguments, $this->_database,'Sektor');	
+				}	
+				
 			}
 		}
     }

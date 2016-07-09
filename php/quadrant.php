@@ -75,11 +75,11 @@ class _Quadrant extends Page
 		$query ="SELECT quadrant_id AS quadrantId, quadrant_name AS quadrantName, quadrant_x AS quadrantX, quadrant_y AS quadrantY, sector_id AS sectorId FROM wcrs_quadrant ORDER BY quadrant_id DESC;";
 		if ($Recordset = $this->_database->query($query)) {
 			$a = array();
-			$a[0][0] = "quadrantId";$a[0][1]='QuadrantID';$a[0][2]='quadrantId';
-			$a[1][0] = "quadrantName";$a[1][1] = "Name";$a[1][2] = "quadrantName";
-			$a[2][0] = "quadrantX";$a[2][1] = "X";$a[2][2] = "quadrantX";
-			$a[3][0] = "quadrantY";$a[3][1] = "Y";$a[3][2] = "quadrantY";
-			$a[4][0] = "sectorId";$a[4][1] = "SektorID";$a[4][2] = "sectorId";
+			$a[0][0] = "quadrantId";$a[0][1]='QuadrantID';$a[0][2]='quadrantId';$a[0][3]=2;
+			$a[1][0] = "quadrantName";$a[1][1] = "Name";$a[1][2] = "quadrantName";$a[1][3]=5;
+			$a[2][0] = "quadrantX";$a[2][1] = "X";$a[2][2] = "quadrantX";$a[2][3]=1;
+			$a[3][0] = "quadrantY";$a[3][1] = "Y";$a[3][2] = "quadrantY";$a[3][3]=1;
+			$a[4][0] = "sectorId";$a[4][1] = "SektorID";$a[4][2] = "sectorId";$a[4][3]=2;
 			$this->content_html .= createTable($Recordset,$a,'Quadranten','addQuadrant','editQuadrant','deleteQuadrant');
 			
 			/* free result set */
@@ -126,25 +126,28 @@ class _Quadrant extends Page
         // to do: call processReceivedData() for all members
 		if (isset($_POST['addQuadrant'])) {
 			$arguments = array();
-			$arguments[0] = $this->_database->real_escape_string($_POST['quadrantName']);
-			$arguments[1] = intval($this->_database->real_escape_string($_POST['quadrantX']));
-			$arguments[2] = intval($this->_database->real_escape_string($_POST['quadrantY']));
-			$arguments[3] = intval($this->_database->real_escape_string($_POST['sectorId']));
-			
-			if (is_string($arguments[0]) && is_int($arguments[1]) && is_int($arguments[2]) && is_int($arguments[3]) )
+			$arguments[0] = $_POST['quadrantName'];
+			$arguments[1] = $_POST['quadrantX'];
+			$arguments[2] = $_POST['quadrantY'];
+			$arguments[3] = $_POST['sectorId'];
+
+			if (strlen($arguments[0])>0 && $arguments[1]>0 && $arguments[2] >0 && $arguments[3]>0)
 			{
-			
-				if (strlen($arguments[0])>0)
-				{
-					insertQuadrant($arguments, $this->_database);
-				}
-				else
-				{
-					echo "Fehlerhafte Eingabe (Länge).";
-				}
+				insertQuadrant($arguments, $this->_database);
 			}
-			else{
-				echo "Fehlerhafte Eingabe.";
+		}else{
+			if (isset($_POST['editQuadrant'])) {	
+			$arguments[0] = $_POST['quadrantName'];
+			$arguments[1] = $_POST['quadrantX'];
+			$arguments[2] = $_POST['quadrantY'];
+			$arguments[3] = $_POST['sectorId'];
+			$arguments[4] =  $_POST['quadrantId'];
+		
+			if (strlen($arguments[0])>0 && $arguments[1]>0 && $arguments[2] >0 && $arguments[3]>0 &&$arguments[4]>0)
+			{
+				editTemplate($arguments, $this->_database,'Quadrant');	
+			}	
+				
 			}
 		}
     }

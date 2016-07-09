@@ -75,12 +75,12 @@ class _Fleet extends Page
 		$query ="SELECT fleet_id AS fleetId, fleet_name AS fleetName, faction_id AS factionId, fleet_image AS fleetImage, system_id AS systemId, fleet_status AS fleetStatus FROM wcrs_fleet ORDER BY fleet_id DESC;";
 		if ($Recordset = $this->_database->query($query)) {
 			$a = array();
-			$a[0][0] = "fleetId";$a[0][1]='FlotteID';$a[0][2]='fleetId';
-			$a[1][0] = "fleetName";$a[1][1] = "Name";$a[1][2] = "fleetName";
-			$a[2][0] = "factionId";$a[2][1] = "FaktionID";$a[2][2] = "factionId";
-			$a[3][0] = "fleetImage";$a[3][1] = "Bild";$a[3][2] = "fleetImage";
-			$a[4][0] = "systemId";$a[4][1] = "SystemID";$a[4][2] = "systemId";
-			$a[5][0] = "fleetStatus";$a[5][1] = "Status";$a[5][2] = "fleetStatus";
+			$a[0][0] = "fleetId";$a[0][1]='FlotteID';$a[0][2]='fleetId';$a[0][3]=2;
+			$a[1][0] = "fleetName";$a[1][1] = "Name";$a[1][2] = "fleetName";$a[1][3]=2;
+			$a[2][0] = "factionId";$a[2][1] = "FaktionID";$a[2][2] = "factionId";$a[2][3]=2;
+			$a[3][0] = "fleetImage";$a[3][1] = "Bild";$a[3][2] = "fleetImage";$a[3][3]=2;
+			$a[4][0] = "systemId";$a[4][1] = "SystemID";$a[4][2] = "systemId";$a[4][3]=2;
+			$a[5][0] = "fleetStatus";$a[5][1] = "Status";$a[5][2] = "fleetStatus";$a[5][3]=1;
 			$this->content_html .= createTable($Recordset,$a,'Flotten','addFleet','editFleet','deleteFleet');
 			
 			/* free result set */
@@ -127,12 +127,31 @@ class _Fleet extends Page
         parent::processReceivedData();
         // to do: call processReceivedData() for all members
 		if (isset($_POST['addFleet'])) {
-			$arguments[0] = $this->_database->real_escape_string($_POST['fleetName']);
-			$arguments[1] =  $this->_database->real_escape_string($_POST['factionId']);
-			$arguments[2] =  $this->_database->real_escape_string($_POST['fleetImage']);
-			$arguments[3] =  $this->_database->real_escape_string($_POST['systemId']);
-			$arguments[4] =  $this->_database->real_escape_string($_POST['fleetStatus']);
-			insertFleet($arguments, $this->_database);
+			$arguments[0] = $_POST['fleetName'];
+			$arguments[1] = $_POST['factionId'];
+			$arguments[2] = $_POST['fleetImage'];
+			$arguments[3] = $_POST['systemId'];
+			$arguments[4] = $_POST['fleetStatus'];
+			
+			if (strlen($arguments[0])>0 && $arguments[1]>0 && strlen($arguments[2])>0 && $arguments[3]>0 && $arguments[4]>=0)
+			{
+				insertFleet($arguments, $this->_database);
+			}
+		}else{
+			if (isset($_POST['editFleet'])) {
+				$arguments[0] = $_POST['fleetName'];
+				$arguments[1] = $_POST['factionId'];
+				$arguments[2] = $_POST['fleetImage'];
+				$arguments[3] = $_POST['systemId'];
+				$arguments[4] = $_POST['fleetStatus'];
+				$arguments[5] = $_POST['fleetId'];
+				
+				if (strlen($arguments[0])>0 && $arguments[1]>0 && strlen($arguments[2])>0 && $arguments[3]>0 && $arguments[4]>=0 &&  $arguments[5]>0)
+				{
+					editTemplate($arguments, $this->_database,'Flotte');	
+				}	
+				
+			}
 		}
     }
 

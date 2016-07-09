@@ -75,10 +75,10 @@ class _Jump extends Page
 		$query ="SELECT jump_id AS jumpId, system_id_1 AS systemId1, system_id_2 AS systemId2, jump_status AS jumpStatus FROM wcrs_jump ORDER BY jump_id DESC;";
 		if ($Recordset = $this->_database->query($query)) {
 			$a = array();
-			$a[0][0] = "jumpId";$a[0][1]='JumpID';$a[0][2]='jumpId';
-			$a[1][0] = "systemId1";$a[1][1] = "System 1";$a[1][2] = "systemId1";
-			$a[2][0] = "systemId2";$a[2][1] = "System 2";$a[2][2] = "systemId2";
-			$a[3][0] = "jumpStatus";$a[3][1] = "Status";$a[3][2] = "jumpStatus";
+			$a[0][0] = "jumpId";$a[0][1]='JumpID';$a[0][2]='jumpId';$a[0][3]=2;
+			$a[1][0] = "systemId1";$a[1][1] = "System 1";$a[1][2] = "systemId1";$a[1][3]=3;
+			$a[2][0] = "systemId2";$a[2][1] = "System 2";$a[2][2] = "systemId2";$a[2][3]=3;
+			$a[3][0] = "jumpStatus";$a[3][1] = "Status";$a[3][2] = "jumpStatus";$a[3][3]=3;
 			$this->content_html .= createTable($Recordset,$a,'Jumps','addJump','editJump','deleteJump');
 			
 			/* free result set */
@@ -125,10 +125,28 @@ class _Jump extends Page
         parent::processReceivedData();
         // to do: call processReceivedData() for all members
 		if (isset($_POST['addJump'])) {
-			$arguments[0] = $this->_database->real_escape_string($_POST['systemId1']);
-			$arguments[1] =  $this->_database->real_escape_string($_POST['systemId2']);
-			$arguments[2] =  $this->_database->real_escape_string($_POST['jumpStatus']);
-			insertJump($arguments, $this->_database);		
+			$arguments[0] = $_POST['systemId1'];
+			$arguments[1] = $_POST['systemId2'];
+			$arguments[2] = $_POST['jumpStatus'];
+			
+			if ($arguments[0] > 0 && $arguments[1] > 0 && $arguments[2] >= 0)
+			{
+				insertJump($arguments, $this->_database);		
+			}	
+		}else{
+			if (isset($_POST['editJump'])) {
+				$arguments[0] = $_POST['systemId1'];
+				$arguments[1] = $_POST['systemId2'];
+				$arguments[2] = $_POST['jumpStatus'];
+				$arguments[3] = $_POST['jumpId'];
+				
+				if ($arguments[0] > 0 && $arguments[1] > 0 && $arguments[3] > 0 && $arguments[2] >= 0 && $arguments[2] < 128)
+				{
+					editTemplate($arguments, $this->_database,'Jump');	
+					//editJump($arguments, $this->_database);	
+				}	
+				
+			}
 		}
     }
 

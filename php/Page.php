@@ -52,7 +52,7 @@ abstract class Page
      */
     protected function __construct() 
     {
-        $this->_database = new mysqli("localhost", "user", "password", "database");
+        $this->_database = new mysqli("localhost", "xxx", "xxx", "xxx");
 		/* check connection */
 		if ($this->_database->connect_errno) {
 			printf("Connect failed: %s\n", $mysqli->connect_error);
@@ -101,6 +101,7 @@ abstract class Page
 		<style>
 			.btn-group-flex {display: flex; }
 		</style>
+		<!--<link rel="stylesheet" href="css/map.css">-->
 	</head>
 	<body>
 		<nav class="navbar navbar-default">
@@ -114,7 +115,7 @@ abstract class Page
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 					</button>
-					<a class="navbar-brand" href="system.php">Wing Commander Map</a>
+					<a class="navbar-brand" href="index.php">Wing Commander Map</a>
 				</div>
 				<!-- Collect the nav links, forms, and other content for toggling -->
 				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -125,7 +126,9 @@ abstract class Page
 					  <li><a href="jump.php">Jumps</a></li>
 					  <li><a href="faction.php">Faktionen</a></li>
 					  <li><a href="fleet.php">Flotten</a></li>
+					  <li><a href="image.html">Screenshot</a></li>
 					  <li><a href="json.php">JSON</a></li>
+					  <li><a target="_blank" href="map_max.html">Karte</a></li>
 					</ul>
 				</div><!-- /.navbar-collapse -->
 			</div><!-- /.container-fluid -->
