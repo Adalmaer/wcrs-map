@@ -16,9 +16,6 @@ var controls;
 var controls1;
 var labelVisibility;
 var systemVisibility;
-var factionMaterials;
-
-
 
 var views = [{
     left: 0,
@@ -56,7 +53,7 @@ function init() {
 	labelVisibility = true;
 	systemVisibility=true;
 	fleetVisibility=true;
-	
+		
     // Viewports for scene
     for (var ii = 0; ii < views.length; ++ii) {
 
@@ -81,23 +78,16 @@ function init() {
     scene.add(light);
 
 	createCustomGrid(8,10);
-	//alert('1/5');
 	
 	createLabels();
 	scene.add(labelGroup);
-	//alert('2/5');
 	
-	//createSystems();
-    //createSystems_1();
-    createSystems_2();
-	//createSystems_3();
+	createSystems();
 	scene.add(systemGroup);
 	createSidebarList();
-	//alert('3/5');
 	
 	createFleets();
 	scene.add(fleetGroup);
-	//alert('4/5');
 
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -114,13 +104,10 @@ function init() {
 	//var fog = new THREE.Fog( 0x000000, 1, 15000 );
     //scene.fog = fog;
     renderer.setClearColor( 0xcccccc);
-	
-	//alert('5/5');
-	
+		
 }
 
 function initControlProperties() {
-    //controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
     var offsetX = 7500;
 	var offsetZ = 6000;
 	
@@ -141,11 +128,9 @@ function initControlProperties() {
     //controls.panSpeed=0.01;
 	//views[0].camera.position.set(offsetX, offsetX*2, offsetZ);
 	//views[0].camera.lookAt(new THREE.Vector3(offsetX, 0, offsetZ));
-	//cameraLookDownAt(views[0].camera,5000,5000,5000);
 	cameraLookDownAt(controls, views[0].camera,750,2000,750);
 	
     // Controls of small window
-    
     controls1.enableZoom = false;
     controls1.enablePan = false;
     controls1.enableRotate = false;
@@ -155,15 +140,14 @@ function initControlProperties() {
     //views[1].camera.lookAt(new THREE.Vector3(offsetX, 0, offsetZ));
 }
 
-
 function createCustomGrid(rows, cols)
 {
 	
-	/*    var gridScale = 7500;
-    var gridHelper = new THREE.GridHelper(gridScale, 1500, 0x48b0b0, 0x48b0b0);
-    gridHelper.position.y = 0;
+	/*var gridScale = 7500;
+    var gridHelper = new THREE.GridHelper(gridScale, 50, 0x48b0b0, 0x48b0b0);
+    gridHelper.position.y = -1;
     gridHelper.position.x = (gridScale);
-    gridHelper.position.z = (gridScale);
+    gridHelper.position.z = (gridScale)-1500;
     scene.add(gridHelper);*/
 	
 	var group = new THREE.Object3D(); //create an empty container
@@ -202,14 +186,14 @@ function createCustomGrid(rows, cols)
 function createLabels(){
 	var currentQuadrant=-1;
 	var currentSector=-1;
-	for (i = 0; i < systemList.systems.length; i++) 
+	for (var i = 0; i < systemList.systems.length; i++) 
 	{
 		if (currentQuadrant!=systemList.systems[i].quadrantId)
 		{
 			var pX = (((parseInt(systemList.systems[i].quadrantX)-1) * 30) * 50)+750;
 			var pZ = (((parseInt(systemList.systems[i].quadrantY)-1) * 30) * 50)+750;
 			var pY = +500;
-			var label = makeTextSprite(systemList.systems[i].quadrantName, pX, pY, pZ,{spritescale:400,hAlign:"center",textColor: {r:255, g:69, b:0, a:0.5}});
+			var label = makeTextSprite(systemList.systems[i].quadrantName, pX, pY, pZ,{spritescale:400,textColor: {r:255, g:69, b:0, a:0.5}});
 			labelGroup.add(label);
 			currentQuadrant=systemList.systems[i].quadrantId;
 		}
@@ -227,45 +211,120 @@ function createLabels(){
 
 function createSystems() {
 
-    // create the particle variables
-    var particles = new THREE.Geometry();
+	var factionMaterials = [];
+	var factionParticles = [];
 
+	for (var i=0; i< factionList.factions.length;i++){
+		
+		//var loader = new THREE.TextureLoader();
+		//var particleTexture = loader.load("images/sprite.png");
+		        
+		var mat = new THREE.PointsMaterial({
+			color: parseInt(factionList.factions[i].colorCode, 16),
+			size: 150,
+			//map: particleTexture,
+			transparent: true,
+			alphaTest: 0.5
+		});
+		
+		var material = new THREE.MeshLambertMaterial({
+			color: parseInt(factionList.factions[i].colorCode, 16)
+		});
+		
+		factionMaterials[i] = [];
+		factionMaterials[i][0]= mat;
+		factionMaterials[i][1]= material;
+		factionParticles[i] = new THREE.Geometry();
+	}
+
+    // Similar for quality 0 and 1
+    for (var i = 0; i < systemList.systems.length; i++) {
+       
+			/*/////
+			Status 0: Noch nicht bearbeitet
+			Status 1: Normales System
+			Status 2: Hauptquartier
+			Status 3: Vernichtet
+			*//////
+			
+		var pX = (parseInt(systemList.systems[i].systemX) + parseInt(systemList.systems[i].quadrantX-1)*30) * 50;
+		var pZ = (parseInt(systemList.systems[i].systemY) + parseInt(systemList.systems[i].quadrantY-1)*30) * 50;
+		var pY = 0;	
+			
+		// create a particle with position	
+		if (systemList.systems[i].systemStatus == 2){
+							
+			var radius = 75;
+			var segments = 24;
+			var rings = segments;
+			
+			var sphere = new THREE.Mesh(
+				new THREE.SphereGeometry(
+					radius,
+					segments,
+					rings),
+				factionMaterials[parseInt(systemList.systems[i].factionId)-1][1]);
+
+			sphere.position.x = pX;
+			sphere.position.z = pZ;
+			sphere.position.y = pY;
+
+			// add the sphere to the scene
+			systemGroup.add(sphere);
+
+			var bigint = parseInt(factionList.factions[parseInt(systemList.systems[i].factionId)-1].colorCode,16);			
+			var label = makeTextSprite(systemList.systems[i].systemName, pX, pY, pZ+100,{
+				spritescale:250,
+				textColor: {r:((bigint >> 16) & 255), g:((bigint >> 8) & 255), b:(bigint & 255), a:1}});
+		}
+		else{
+			var particle = new THREE.Vector3(pX, pY, pZ);
+			factionParticles[parseInt(systemList.systems[i].factionId)-1].vertices.push(particle);
+			var label = makeTextSprite(systemList.systems[i].systemName, pX, pY, pZ+50,{spritescale:200});
+		}
+		systemGroup.add(label);
+		
+    }
+		
+	for (var i = 0; i < factionParticles.length; i++) {  
+	
+		if (factionParticles[i].vertices.length>0){
+			var ps = new THREE.Points(
+			factionParticles[i],
+			factionMaterials[i][0]);
+			systemGroup.add(ps);
+			}
+	 }
+	 
+	 ////////////////////////////////////////////////////////////////////////
+	// create the particle variables
+    /*var particles = new THREE.Geometry();
     var pMaterial = new THREE.PointsMaterial({
         color: 0xCC0000,
-        size: 150,
+        size: 1,
         transparent: true,
 		alphaTest: 0.5
     });
+	
+	// add it to the geometry
+	particles.vertices.push(particle);
 
-    // Similar for quality 0 and 1
-    for (i = 0; i < systemList.systems.length; i++) {
-        // create a particle with position
-		
-        var pX = (parseInt(systemList.systems[i].systemX) + parseInt(systemList.systems[i].quadrantX-1)*30) * 50;
-        var pZ = (parseInt(systemList.systems[i].systemY) + parseInt(systemList.systems[i].quadrantY-1)*30) * 50;
-        var pY = 0;
-        particle = new THREE.Vector3(pX, pY, pZ);
-
-        // add it to the geometry
-        particles.vertices.push(particle);
-
-        var label = makeTextSprite(systemList.systems[i].systemName, pX, pY, pZ+50,{spritescale:200});
-        systemGroup.add(label);
-    }
-
+	for (var j=0;j<10000000;j++){
+	particle = new THREE.Vector3(3000*Math.random(), 1000*Math.random(), 9000+3000*Math.random());
+	particles.vertices.push(particle);
+	}
     // create the particle system
     var particleSystem = new THREE.Points(
         particles,
         pMaterial);
-
+	 
     // add it to the scene
-    systemGroup.add(particleSystem);
+    systemGroup.add(particleSystem);*/
+	////////////////////////////////////////////////////////////////////////
+	  
 }
 
 function createFleets() {
-
-    // create the particle variables
-    var particles = new THREE.Geometry();
 
     // instantiate a loader
     var loader = new THREE.TextureLoader();
@@ -273,19 +332,27 @@ function createFleets() {
     //allow cross origin loading
     loader.crossOrigin = '';
 
-    // Load Texture
-	//var imagePath = fleetList.fleets[i].fleetImage;
-    var particleTexture = loader.load("midway.png");
-    var pMaterial = new THREE.PointsMaterial({
-        map: particleTexture,
-        transparent: true,
-		alphaTest: 0.5,
-        size: 200,
-       // color: 0xCC0000
-    });
-
-    // Similar for quality 0 and 1
-    for (i = 0; i < fleetList.fleets.length; i++) {
+	var fleetParticles=[];
+	var fleetMaterials = [];
+	for (var i=0;i<fleetList.fleets.length;i++)
+	{
+		if(fleetMaterials[fleetList.fleets[i].fleetImage]==null)
+		{
+			var particleTexture = loader.load(fleetList.fleets[i].fleetImage);
+			var pMaterial = new THREE.PointsMaterial({
+				map: particleTexture,
+				transparent: true,
+				alphaTest: 0.5,
+				size: 300,
+			});
+			
+			fleetMaterials[fleetList.fleets[i].fleetImage] = pMaterial;
+			fleetParticles[fleetList.fleets[i].fleetImage] = new THREE.Geometry();
+		}
+	}
+	
+    for (var i = 0; i < fleetList.fleets.length; i++) {
+		
         // create a particle with position
         var pX = (parseInt(fleetList.fleets[i].systemX) + parseInt(fleetList.fleets[i].quadrantX-1)*30) * 50+75;
         var pZ = (parseInt(fleetList.fleets[i].systemY) + parseInt(fleetList.fleets[i].quadrantY-1)*30) * 50-75;
@@ -293,7 +360,8 @@ function createFleets() {
         particle = new THREE.Vector3(pX, pY, pZ);
 
         // add it to the geometry
-        particles.vertices.push(particle);
+        //particles.vertices.push(particle);
+		fleetParticles[fleetList.fleets[i].fleetImage].vertices.push(particle);
 
         var label = makeTextSprite(fleetList.fleets[i].fleetName, pX, pY, pZ+50,{spritescale:100});
         fleetGroup.add(label);
@@ -304,152 +372,14 @@ function createFleets() {
 		geometry.vertices.push( new THREE.Vector3( pX-75, 5, pZ+75 ) );
 		geometry.vertices.push( new THREE.Vector3( pX, pY-5, pZ ) );
 		var line = new THREE.Line(geometry, orangeMaterial);
-		fleetGroup.add(line);		
+		fleetGroup.add(line);	
     }
-
-    // create the particle system
-    var particleSystem = new THREE.Points(
-        particles,
-        pMaterial);
-
-    // add it to the scene
-    fleetGroup.add(particleSystem);
-}
-
-function createSystems_1() {
-
-    // create the particle variables
-    var particles = new THREE.Geometry();
-
-    // instantiate a loader
-    var loader = new THREE.TextureLoader();
-
-    //allow cross origin loading
-    loader.crossOrigin = '';
-
-    // Load Texture
-    var particleTexture = loader.load("http://threejs.org/examples/textures/sprites/ball.png");
-    var pMaterial = new THREE.PointsMaterial({
-        map: particleTexture,
-    transparent: true,
-        size: 300,
-        color: 0xCC0000
-    });
-
-    // Similar for quality 0 and 1
-    for (i = 0; i < systemList.systems.length; i++) {
-        // create a particle with position
-        var pX = parseInt(systemList.systems[i].systemX) + parseInt(systemList.systems[i].quadrantX) * 1500;
-        var pZ = parseInt(systemList.systems[i].systemY) + parseInt(systemList.systems[i].quadrantY) * 1500;
-        var pY = 0;
-        particle = new THREE.Vector3(pX, pY, pZ);
-
-        // add it to the geometry
-        particles.vertices.push(particle);
-
-        var label = makeTextSprite(systemList.systems[i].systemName, pX, pY, pZ);
-        systemGroup.add(label);
-    }
-
-    // create the particle system
-    var particleSystem = new THREE.Points(
-        particles,
-        pMaterial);
-
-    // add it to the scene
-    systemGroup.add(particleSystem);
-}
-
-function createSystems_2() {
-   
-    var total = new THREE.Geometry();
-
-    // Uses sphere geometry
-    var radius = 50;
-    var segments = 24;
-    var rings = segments;
-    // create the sphere's material
-    var sphereMaterial = new THREE.MeshLambertMaterial({
-        color: 0xCC0000
-    });
-
-    // Create system spheres
-    for (i = 0; i < systemList.systems.length; i++) {
-        // create a new mesh with
-        // sphere geometry - we will cover
-        // the sphereMaterial next!
-        var sphere = new THREE.Mesh(
-
-            new THREE.SphereGeometry(
-                radius,
-                segments,
-                rings),
-
-            sphereMaterial);
 	
-        var pX = (parseInt(systemList.systems[i].systemX) + parseInt(systemList.systems[i].quadrantX-1)*30) * 50;
-        var pZ = (parseInt(systemList.systems[i].systemY) + parseInt(systemList.systems[i].quadrantY-1)*30) * 50;
-        var pY = 0;
-
-        sphere.position.x = pX;
-        sphere.position.z = pZ;
-        sphere.position.y = pY;
-
-        // add the sphere to the scene
-        sphere.updateMatrix();
-        total.merge(sphere.geometry, sphere.matrix);
-
-        var label = makeTextSprite(systemList.systems[i].systemName, pX, pY + 75, pZ,{spritescale:200});
-        systemGroup.add(label);
-    }
-
-    var mesh = new THREE.Mesh(total, new THREE.MeshLambertMaterial({
-        color: 0xCC0000
-    }))
-    systemGroup.add(mesh);
-}
-
-function createSystems_3() {
-    var group = new THREE.Object3D(); //create an empty container
-
-    // Uses sphere geometry
-    var radius = 50;
-    var segments = 24;
-    var rings = segments;
-    // create the sphere's material
-    var sphereMaterial = new THREE.MeshLambertMaterial({
-        color: 0xCC0000
-    });
-
-    // Create system spheres
-    for (i = 0; i < systemList.systems.length; i++) {
-        // create a new mesh with
-        // sphere geometry - we will cover
-        // the sphereMaterial next!
-        var sphere = new THREE.Mesh(
-
-            new THREE.SphereGeometry(
-                radius,
-                segments,
-                rings),
-
-            sphereMaterial);
-
-       var pX = (parseInt(systemList.systems[i].systemX) + parseInt(systemList.systems[i].quadrantX-1)*30) * 50;
-        var pZ = (parseInt(systemList.systems[i].systemY) + parseInt(systemList.systems[i].quadrantY-1)*30) * 50;
-        var pY = 0;
-
-        sphere.position.x = pX;
-        sphere.position.z = pZ;
-        sphere.position.y = pY;
-
-        // add the sphere to the scene
-        systemGroup.add(sphere);
-
-        var label = makeTextSprite(systemList.systems[i].systemName, pX, pY + 75, pZ,{spritescale:200});
-        systemGroup.add(label);
-    }
-    //scene.add(group);
+    // add it to the scene
+	for (var index in fleetParticles){
+		var particleSystem = new THREE.Points(fleetParticles[index], fleetMaterials[index]);
+		fleetGroup.add(particleSystem);	
+	}
 }
 
 function createSidebarList() {
@@ -463,7 +393,7 @@ function createSidebarList() {
     var sectorListItem;
 
     // Iterate through systems
-    for (i = 0; i < systemList.systems.length; i++) {
+    for (var i = 0; i < systemList.systems.length; i++) {
 
         // Add new quadrant to sector
         if (quadrantId != systemList.systems[i].quadrantId) {
@@ -486,8 +416,6 @@ function createSidebarList() {
 
             // Set new Id for quadrant
             quadrantId = systemList.systems[i].quadrantId;
-
-
         }
 
         // Add new sector to mainList
@@ -510,7 +438,6 @@ function createSidebarList() {
 
             // Set new Id for sector
             sectorId = systemList.systems[i].sectorId;
-
         }
 
         //Add current system to quadrant
@@ -531,7 +458,6 @@ function createSidebarList() {
     sectorList.appendChild(quadrantListItem);
     sectorListItem.appendChild(sectorList);
     mainList.appendChild(sectorListItem);
-
 }
 
 function setNodeAttributes(node, id, dataX, dataY, distance, icon) {
@@ -715,7 +641,6 @@ function toggleLabelVisibility()
 		labelVisibility=true;
 		alert('Labels an');
 	}
-	
 }
 
 function toggleFleetVisibility()
@@ -767,12 +692,3 @@ function cameraLookDownAt(controls,camera, x, y, z) {
 	camera.lookAt(new THREE.Vector3(x, 0, z));
 	controls.target.set( x, 0, z );
 }
-
-$(function() {
-	$('#jstree').jstree({
-		"core": {
-			"multiple": false,
-			"animation": 1
-		}
-	});
-});
