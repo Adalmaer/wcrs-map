@@ -1,36 +1,9 @@
 ﻿<?php	// UTF-8 marker äöüÄÖÜß€
 /**
- * Class PageTemplate for the exercises of the EWA lecture
- * Demonstrates use of PHP including class and OO.
- * Implements Zend coding standards.
- * Generate documentation with Doxygen or phpdoc
- * 
- * PHP Version 5
- *
- * @category File
- * @package  Pizzaservice
- * @author   Bernhard Kreling, <b.kreling@fbi.h-da.de> 
- * @author   Ralf Hahn, <ralf.hahn@h-da.de> 
- * @license  http://www.h-da.de  none 
- * @Release  1.2 
- * @link     http://www.fbi.h-da.de 
- */
 
 // to do: change name 'PageTemplate' throughout this file
-//require_once './Page.php';
 require_once 'Page.php';
-/**
- * This is a template for top level classes, which represent 
- * a complete web page and which are called directly by the user.
- * Usually there will only be a single instance of such a class. 
- * The name of the template is supposed
- * to be replaced by the name of the specific HTML page e.g. baker.
- * The order of methods might correspond to the order of thinking 
- * during implementation.
- 
- * @author   Bernhard Kreling, <b.kreling@fbi.h-da.de> 
- * @author   Ralf Hahn, <ralf.hahn@h-da.de> 
- */
+
 class _Jump extends Page
 {
     // to do: declare reference variables for members 
@@ -75,18 +48,6 @@ class _Jump extends Page
 		
         // to do: fetch data for this view from the 
 		$queryList = array();
-		/*$queryList[0][0] ="SELECT system_id AS systemId, system_name as systemName, faction_id as factionId, system_x as systemX, system_y as systemY, system_z as systemZ, quadrant_id as quadrantId, system_status as systemStatus FROM wcrs_system ORDER BY sector_id ASC, quadrant_id ASC, system_id ASC";
-		$queryList[0][1] = "system";
-		$queryList[1][0] ="SELECT quadrant_id as quadrantId, quadrant_name as quadrantName, quadrant_x as quadrantX, quadrant_y as quadrantY, sector_id as sectorId FROM wcrs_quadrant ORDER BY quadrant_id ASC";
-		$queryList[1][1] = "quadrant";
-		$queryList[2][0] ="SELECT sector_id as sectorId, sector_name as sectorName FROM wcrs_sector ORDER BY sector_id ASC";
-		$queryList[2][1] = "sector";
-		$queryList[3][0] ="SELECT jump_id AS jumpId, system_id_1 as systemId1, system_id_2 as systemId2, jump_status AS jumpStatus FROM wcrs_jump ORDER BY jump_id ASC";
-		$queryList[3][1] = "jump";
-		$queryList[4][0] ="SELECT faction_id, faction_name, color_code FROM wcrs_faction ORDER BY faction_id ASC";
-		$queryList[4][1] = "faction";
-		$queryList[5][0] ="SELECT fleet_id, fleet_name, faction_id, fleet_image, system_id, fleet_status FROM wcrs_fleet ORDER BY fleet_id ASC";
-		$queryList[5][1] = "fleet";*/
 		
 		$queryList[0][0] = "SELECT system_id AS systemId, system_name as systemName, system_x as systemX, system_y as systemY, system_z AS systemZ, faction_id AS factionId, q.quadrant_id as quadrantId, quadrant_name AS quadrantName, quadrant_x as quadrantX, quadrant_y AS quadrantY, r.sector_id AS sectorId, r.sector_name AS sectorName, system_status AS systemStatus FROM wcrs_system s, wcrs_quadrant q, wcrs_sector r WHERE s.quadrant_id=q.quadrant_id AND q.sector_id = r.sector_id AND system_status >0 ORDER BY r.sector_id ASC, s.quadrant_id ASC, s.system_id ASC;";
 		$queryList[0][1] = "system";
