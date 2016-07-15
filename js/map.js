@@ -12,6 +12,7 @@ var windowWidth, windowHeight;
 var labelGroup;
 var systemGroup;
 var fleetGroup;
+
 var controls;
 var controls1;
 var labelVisibility;
@@ -50,6 +51,7 @@ function init() {
 	labelGroup = new THREE.Object3D();
 	systemGroup = new THREE.Object3D();
 	fleetGroup = new THREE.Object3D();
+	
 	labelVisibility = true;
 	systemVisibility=true;
 	fleetVisibility=true;
@@ -88,7 +90,10 @@ function init() {
 	
 	createFleets();
 	scene.add(fleetGroup);
-
+	
+	
+	createJumpLines();
+	
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -104,6 +109,12 @@ function init() {
 	//var fog = new THREE.Fog( 0x000000, 1, 15000 );
     //scene.fog = fog;
     renderer.setClearColor( 0xcccccc);
+	
+	/*systemList = null;
+	fleetList = null;
+	factionList = null;
+	quadrantList = null;
+	jumpList = null;*/
 		
 }
 
@@ -182,7 +193,7 @@ function createCustomGrid(rows, cols)
 	}
 	scene.add(group);
 }
-
+/*
 function createLabels(){
 	var currentQuadrant=-1;
 	var currentSector=-1;
@@ -207,6 +218,32 @@ function createLabels(){
 			currentSector=systemList.systems[i].sectorId;
 		}
 	}
+}*/
+
+function createLabels(){
+
+	var currentSector=-1;
+	var parsedSectorId=-1;
+	for (var i = 0; i < quadrantList.quadrants.length; i++) 
+	{
+		
+		var pX = (((parseInt(quadrantList.quadrants[i].quadrantX)-1) * 30) * 50)+750;
+		var pZ = (((parseInt(quadrantList.quadrants[i].quadrantY)-1) * 30) * 50)+750;
+		var pY = +500;
+		var label = makeTextSprite(quadrantList.quadrants[i].quadrantName, pX, pY, pZ,{spritescale:400,textColor: {r:255, g:69, b:0, a:0.5}});
+		labelGroup.add(label);
+
+		parsedSectorId = parseInt(quadrantList.quadrants[i].sectorId);
+		
+		if(currentSector!=parsedSectorId){
+			var pX = (((parseInt(quadrantList.quadrants[i].quadrantX)-1) * 30) * 50)+1500;
+			var pZ = (((parseInt(quadrantList.quadrants[i].quadrantY)-1) * 30) * 50)+1500;
+			var pY = +1000;
+			var label = makeTextSprite(quadrantList.quadrants[i].sectorName+"-Sektor", pX, pY, pZ,{spritescale:800,textColor: {r:30, g:144, b:255, a:0.5}});
+			labelGroup.add(label);
+			currentSector=parsedSectorId;
+		}
+	}
 }
 
 function createSystems() {
@@ -216,14 +253,14 @@ function createSystems() {
 
 	for (var i=0; i< factionList.factions.length;i++){
 		
-		//var loader = new THREE.TextureLoader();
-		//var particleTexture = loader.load("images/sprite.png");
+		var loader = new THREE.TextureLoader();
+		var particleTexture = loader.load("images/sprite.png");
 		        
 		var mat = new THREE.PointsMaterial({
 			color: parseInt(factionList.factions[i].colorCode, 16),
 			size: 150,
-			//map: particleTexture,
-			transparent: true,
+			map: particleTexture,
+			transparent : false,
 			alphaTest: 0.5
 		});
 		
@@ -278,9 +315,16 @@ function createSystems() {
 				textColor: {r:((bigint >> 16) & 255), g:((bigint >> 8) & 255), b:(bigint & 255), a:1}});
 		}
 		else{
+			
+			if (systemList.systems[i].systemStatus=="0")
+			{
+				pX = pX + (Math.floor(Math.random() * 1400) + 100);
+				pZ = pZ + (Math.floor(Math.random() * 1400) + 100);
+			}
+			
 			var particle = new THREE.Vector3(pX, pY, pZ);
 			factionParticles[parseInt(systemList.systems[i].factionId)-1].vertices.push(particle);
-			var label = makeTextSprite(systemList.systems[i].systemName, pX, pY, pZ+50,{spritescale:200});
+			var label = makeTextSprite(systemList.systems[i].systemId + ":"+ systemList.systems[i].systemName, pX, pY, pZ+55,{spritescale:200});
 		}
 		systemGroup.add(label);
 		
@@ -341,7 +385,7 @@ function createFleets() {
 			var particleTexture = loader.load(fleetList.fleets[i].fleetImage);
 			var pMaterial = new THREE.PointsMaterial({
 				map: particleTexture,
-				transparent: true,
+				transparent : false,
 				alphaTest: 0.5,
 				size: 300,
 			});
@@ -354,19 +398,18 @@ function createFleets() {
     for (var i = 0; i < fleetList.fleets.length; i++) {
 		
         // create a particle with position
-        var pX = (parseInt(fleetList.fleets[i].systemX) + parseInt(fleetList.fleets[i].quadrantX-1)*30) * 50+75;
-        var pZ = (parseInt(fleetList.fleets[i].systemY) + parseInt(fleetList.fleets[i].quadrantY-1)*30) * 50-75;
-        var pY = +150;
+        var pX = (parseInt(fleetList.fleets[i].systemX) + parseInt(fleetList.fleets[i].quadrantX-1)*30) * 50+100;
+        var pZ = (parseInt(fleetList.fleets[i].systemY) + parseInt(fleetList.fleets[i].quadrantY-1)*30) * 50-100;
+        var pY = +100;
         particle = new THREE.Vector3(pX, pY, pZ);
 
         // add it to the geometry
-        //particles.vertices.push(particle);
 		fleetParticles[fleetList.fleets[i].fleetImage].vertices.push(particle);
 
         var label = makeTextSprite(fleetList.fleets[i].fleetName, pX, pY, pZ+50,{spritescale:100});
         fleetGroup.add(label);
 		
-		var orangeMaterial = new THREE.LineBasicMaterial( { color: 0xfe5b00   ,   transparent: true,
+		var orangeMaterial = new THREE.LineBasicMaterial( { color: 0xfe5b00   ,   transparent : false,
 		alphaTest: 0.5 } );
 		var geometry = new THREE.Geometry();
 		geometry.vertices.push( new THREE.Vector3( pX-75, 5, pZ+75 ) );
@@ -380,6 +423,23 @@ function createFleets() {
 		var particleSystem = new THREE.Points(fleetParticles[index], fleetMaterials[index]);
 		fleetGroup.add(particleSystem);	
 	}
+}
+
+function createJumpLines(){
+	
+	var jumpGroup = new THREE.Object3D();
+	
+	var greenMaterial = new THREE.LineBasicMaterial( { color: 0x006600,fog:false } );
+	
+	for (var i=0; i<jumpList.jumps.length;i++){	
+		var geometry = new THREE.Geometry();
+		geometry.vertices.push( new THREE.Vector3( jumpList.jumps[i].jumpX1,-1, jumpList.jumps[i].jumpZ1 ) );
+		geometry.vertices.push( new THREE.Vector3( jumpList.jumps[i].jumpX2,-1, jumpList.jumps[i].jumpZ2 ) );
+		var line = new THREE.Line(geometry, greenMaterial);
+		jumpGroup.add(line);
+	}
+		
+	scene.add(jumpGroup);
 }
 
 function createSidebarList() {
@@ -428,11 +488,23 @@ function createSidebarList() {
             sectorListItem = document.createElement("li");
             sectorList = document.createElement("ul");
             sectorListItem.appendChild(document.createTextNode(systemList.systems[i].sectorName+"-Sektor"));
+			var parsedQuadrantX =parseInt(systemList.systems[i].quadrantX);
+			var parsedQuadrantY =parseInt(systemList.systems[i].quadrantY);
+			if (parsedQuadrantX % 2==0)
+			{
+				parsedQuadrantX--;
+			}
+			if (parsedQuadrantY % 2==0)
+			{
+				parsedQuadrantY--;
+			}
+			
+			
             setNodeAttributes(
                 sectorListItem,
                 "sector-" + systemList.systems[i].sectorId,
-                (30 * (parseInt(systemList.systems[i].quadrantX)-1) * 50) + 1500,
-                (30 * (parseInt(systemList.systems[i].quadrantY)-1) * 50) + 1500,
+                (30 * (parsedQuadrantX-1) * 50) + 1500,
+                (30 * (parsedQuadrantY-1) * 50) + 1500,
                 "4000",
                 '{"icon":"glyphicon glyphicon-folder-open"}');
 
