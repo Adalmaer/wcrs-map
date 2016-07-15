@@ -126,9 +126,10 @@ abstract class Page
 					  <li><a href="jump.php">Jumps</a></li>
 					  <li><a href="faction.php">Faktionen</a></li>
 					  <li><a href="fleet.php">Flotten</a></li>
-					  <li><a href="image.html">Screenshot</a></li>
+					  <!--<li><a href="image.html">Screenshot</a></li>-->
+					  <li><a href="path.php">Navigation</a></li>
 					  <li><a href="json.php">JSON</a></li>
-					  <li><a target="_blank" href="map_max.html">Karte</a></li>
+					  <li><a target="_blank" href="map.html">Karte</a></li>
 					</ul>
 				</div><!-- /.navbar-collapse -->
 			</div><!-- /.container-fluid -->

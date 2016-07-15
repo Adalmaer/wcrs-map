@@ -138,10 +138,8 @@ function createRow($a,$row)
 			}
 			else{
 				 //$retVal .=  ('<td>'. htmlentities(stripslashes($row[$b[2]])) .'</td>');
-				 $retVal .= '<div class=" col-sm-'.$b[3].'"><div class="form-group"><label class="sr-only" for="'.htmlentities($b[0]).'-'.$identifier.'">'.htmlentities($b[1]).'</label>
-				 <input type="text" name="'.htmlentities($b[0]).'" class="form-control" id="'.htmlentities($b[0]).'-'.$identifier.'" placeholder="'.htmlentities(stripslashes($row[$b[2]])).'" value="'.htmlentities(stripslashes($row[$b[2]])).'" required>
-					</div></div>';
-				 
+				 //$retVal .= '<div class=" col-sm-'.$b[3].'"><div class="form-group"><label class="sr-only" for="'.htmlentities($b[0]).'-'.$identifier.'">'.htmlentities($b[1]).'</label><input type="text" name="'.htmlentities($b[0]).'" class="form-control" id="'.htmlentities($b[0]).'-'.$identifier.'" placeholder="'.htmlentities(stripslashes($row[$b[2]])).'" value="'.htmlentities(stripslashes($row[$b[2]])).'" required></div></div>';
+				 $retVal .= '<div class=" col-sm-'.$b[3].'"><div class="form-group"><label class="sr-only" for="'.htmlentities($b[0]).'-'.$identifier.'">'.htmlentities($b[1]).'</label><input type="text" name="'.htmlentities($b[0]).'" class="form-control" id="'.htmlentities($b[0]).'-'.$identifier.'" placeholder="'.htmlentities($row[$b[2]]).'" value="'.htmlentities($row[$b[2]]).'" required></div></div>';
 				 
 			}
 		

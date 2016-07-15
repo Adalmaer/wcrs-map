@@ -132,7 +132,7 @@ class _Index extends Page
             $page = new _Index();
             $page->processReceivedData();
             $page->generateView();
-			include 'map_min.html';
+			include 'map_v2.html';
 			echo '</div>';
         }
         catch (Exception $e) {
