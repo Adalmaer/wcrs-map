@@ -52,7 +52,7 @@ abstract class Page
      */
     protected function __construct() 
     {
-        $this->_database = new mysqli("localhost", "xxx", "xxx", "xxx");
+        $this->_database = new mysqli("localhost", "mkr_map", "LwpkaVD96DsjunImL8Ot0Iu83sSSs6LF", "mkr_map");
 		/* check connection */
 		if ($this->_database->connect_errno) {
 			printf("Connect failed: %s\n", $mysqli->connect_error);
