@@ -10,6 +10,7 @@ var windowWidth, windowHeight;
 
 // Max
 var labelGroup;
+var systemLabelGroup;
 var systemGroup;
 var fleetGroup;
 
@@ -18,12 +19,11 @@ var controls1;
 var labelVisibility;
 var systemVisibility;
 
+
 var views = [{
     left: 0,
     bottom: 0,
-    //width: 1.0,
-    //height: 1.0,
-    width: 0.80,
+    width: 1.0,
     height: 1.0,
     background: new THREE.Color().setRGB(0.0, 0.0, 0.0),
     eye: [0, 2000, 0],
@@ -51,6 +51,7 @@ function init() {
 	labelGroup = new THREE.Object3D();
 	systemGroup = new THREE.Object3D();
 	fleetGroup = new THREE.Object3D();
+	systemLabelGroup = new THREE.Object3D();
 	
 	labelVisibility = true;
 	systemVisibility=true;
@@ -86,6 +87,7 @@ function init() {
 	
 	createSystems();
 	scene.add(systemGroup);
+	scene.add(systemLabelGroup);
 	createSidebarList();
 	
 	createFleets();
@@ -106,8 +108,8 @@ function init() {
     controls1 = new THREE.OrbitControls(views[1].camera, renderer.domElement);
     initControlProperties();
 
-	//var fog = new THREE.Fog( 0x000000, 1, 15000 );
-    //scene.fog = fog;
+	var fog = new THREE.Fog( 0x000000, 1, 12500 );
+    scene.fog = fog;
     renderer.setClearColor( 0xcccccc);
 	
 	/*systemList = null;
@@ -137,8 +139,6 @@ function initControlProperties() {
     controls.rotateSpeed = 0.25;
 	controls.zoomSpeed = Math.PI / 2;
     //controls.panSpeed=0.01;
-	//views[0].camera.position.set(offsetX, offsetX*2, offsetZ);
-	//views[0].camera.lookAt(new THREE.Vector3(offsetX, 0, offsetZ));
 	cameraLookDownAt(controls, views[0].camera,750,2000,750);
 	
     // Controls of small window
@@ -147,20 +147,12 @@ function initControlProperties() {
     controls1.enableRotate = false;
 	cameraLookDownAt(controls1, views[1].camera,offsetX,offsetX*2,offsetZ);
 	//controls1.zoomSpeed = 0.75;
-    //views[1].camera.position.set(offsetX, offsetX*2, offsetZ);
-    //views[1].camera.lookAt(new THREE.Vector3(offsetX, 0, offsetZ));
+
 }
 
 function createCustomGrid(rows, cols)
 {
-	
-	/*var gridScale = 7500;
-    var gridHelper = new THREE.GridHelper(gridScale, 50, 0x48b0b0, 0x48b0b0);
-    gridHelper.position.y = -1;
-    gridHelper.position.x = (gridScale);
-    gridHelper.position.z = (gridScale)-1500;
-    scene.add(gridHelper);*/
-	
+		
 	var group = new THREE.Object3D(); //create an empty container
 	var orangeMaterial = new THREE.LineBasicMaterial( { color: 0xfe5b00,fog:false } );
 	var blueMaterial = new THREE.LineBasicMaterial( { color: 0x3399ff,fog:false } );
@@ -193,32 +185,6 @@ function createCustomGrid(rows, cols)
 	}
 	scene.add(group);
 }
-/*
-function createLabels(){
-	var currentQuadrant=-1;
-	var currentSector=-1;
-	for (var i = 0; i < systemList.systems.length; i++) 
-	{
-		if (currentQuadrant!=systemList.systems[i].quadrantId)
-		{
-			var pX = (((parseInt(systemList.systems[i].quadrantX)-1) * 30) * 50)+750;
-			var pZ = (((parseInt(systemList.systems[i].quadrantY)-1) * 30) * 50)+750;
-			var pY = +500;
-			var label = makeTextSprite(systemList.systems[i].quadrantName, pX, pY, pZ,{spritescale:400,textColor: {r:255, g:69, b:0, a:0.5}});
-			labelGroup.add(label);
-			currentQuadrant=systemList.systems[i].quadrantId;
-		}
-		
-		if(currentSector!=systemList.systems[i].sectorId){
-			var pX = (((parseInt(systemList.systems[i].quadrantX)-1) * 30) * 50)+1500;
-			var pZ = (((parseInt(systemList.systems[i].quadrantY)-1) * 30) * 50)+1500;
-			var pY = +1000;
-			var label = makeTextSprite(systemList.systems[i].sectorName+"-Sektor", pX, pY, pZ,{spritescale:800,textColor: {r:30, g:144, b:255, a:0.5}});
-			labelGroup.add(label);
-			currentSector=systemList.systems[i].sectorId;
-		}
-	}
-}*/
 
 function createLabels(){
 
@@ -261,11 +227,13 @@ function createSystems() {
 			size: 150,
 			map: particleTexture,
 			transparent : false,
-			alphaTest: 0.5
+			alphaTest: 0.5,
+			fog:false
 		});
 		
 		var material = new THREE.MeshLambertMaterial({
-			color: parseInt(factionList.factions[i].colorCode, 16)
+			color: parseInt(factionList.factions[i].colorCode, 16),
+			fog:false
 		});
 		
 		factionMaterials[i] = [];
@@ -277,12 +245,12 @@ function createSystems() {
     // Similar for quality 0 and 1
     for (var i = 0; i < systemList.systems.length; i++) {
        
-			/*/////
-			Status 0: Noch nicht bearbeitet
-			Status 1: Normales System
-			Status 2: Hauptquartier
-			Status 3: Vernichtet
-			*//////
+		/*/////
+		Status 0: Noch nicht bearbeitet
+		Status 1: Normales System
+		Status 2: Hauptquartier
+		Status 3: Nachträglich hinzugefügt
+		*//////
 			
 		var pX = (parseInt(systemList.systems[i].systemX) + parseInt(systemList.systems[i].quadrantX-1)*30) * 50;
 		var pZ = (parseInt(systemList.systems[i].systemY) + parseInt(systemList.systems[i].quadrantY-1)*30) * 50;
@@ -312,21 +280,22 @@ function createSystems() {
 			var bigint = parseInt(factionList.factions[parseInt(systemList.systems[i].factionId)-1].colorCode,16);			
 			var label = makeTextSprite(systemList.systems[i].systemName, pX, pY, pZ+100,{
 				spritescale:250,
+				fogEffect:true,
 				textColor: {r:((bigint >> 16) & 255), g:((bigint >> 8) & 255), b:(bigint & 255), a:1}});
 		}
 		else{
 			
-			if (systemList.systems[i].systemStatus=="0")
+			/*if (systemList.systems[i].systemStatus=="0")
 			{
 				pX = pX + (Math.floor(Math.random() * 1400) + 100);
 				pZ = pZ + (Math.floor(Math.random() * 1400) + 100);
-			}
+			}*/
 			
 			var particle = new THREE.Vector3(pX, pY, pZ);
 			factionParticles[parseInt(systemList.systems[i].factionId)-1].vertices.push(particle);
-			var label = makeTextSprite(systemList.systems[i].systemId + ":"+ systemList.systems[i].systemName, pX, pY, pZ+55,{spritescale:200});
+			var label = makeTextSprite(systemList.systems[i].systemId + ":"+ systemList.systems[i].systemName, pX, pY, pZ+55,{spritescale:200, fogEffect:true,});
 		}
-		systemGroup.add(label);
+		systemLabelGroup.add(label);
 		
     }
 		
@@ -338,34 +307,7 @@ function createSystems() {
 			factionMaterials[i][0]);
 			systemGroup.add(ps);
 			}
-	 }
-	 
-	 ////////////////////////////////////////////////////////////////////////
-	// create the particle variables
-    /*var particles = new THREE.Geometry();
-    var pMaterial = new THREE.PointsMaterial({
-        color: 0xCC0000,
-        size: 1,
-        transparent: true,
-		alphaTest: 0.5
-    });
-	
-	// add it to the geometry
-	particles.vertices.push(particle);
-
-	for (var j=0;j<10000000;j++){
-	particle = new THREE.Vector3(3000*Math.random(), 1000*Math.random(), 9000+3000*Math.random());
-	particles.vertices.push(particle);
-	}
-    // create the particle system
-    var particleSystem = new THREE.Points(
-        particles,
-        pMaterial);
-	 
-    // add it to the scene
-    systemGroup.add(particleSystem);*/
-	////////////////////////////////////////////////////////////////////////
-	  
+	 }	  
 }
 
 function createFleets() {
@@ -388,12 +330,15 @@ function createFleets() {
 				transparent : false,
 				alphaTest: 0.5,
 				size: 300,
+				fog:false
 			});
 			
 			fleetMaterials[fleetList.fleets[i].fleetImage] = pMaterial;
 			fleetParticles[fleetList.fleets[i].fleetImage] = new THREE.Geometry();
 		}
 	}
+	
+	//var geometry = new THREE.Geometry();
 	
     for (var i = 0; i < fleetList.fleets.length; i++) {
 		
@@ -406,7 +351,7 @@ function createFleets() {
         // add it to the geometry
 		fleetParticles[fleetList.fleets[i].fleetImage].vertices.push(particle);
 
-        var label = makeTextSprite(fleetList.fleets[i].fleetName, pX, pY, pZ+50,{spritescale:100});
+		var label = makeTextSprite(fleetList.fleets[i].fleetName, pX, pY, pZ+50,{spritescale:150,fogEffect:true});
         fleetGroup.add(label);
 		
 		var orangeMaterial = new THREE.LineBasicMaterial( { color: 0xfe5b00   ,   transparent : false,
@@ -417,6 +362,9 @@ function createFleets() {
 		var line = new THREE.Line(geometry, orangeMaterial);
 		fleetGroup.add(line);	
     }
+	
+	//var line = new THREE.LineSegments(geometry, orangeMaterial);
+	//fleetGroup.add(line);	
 	
     // add it to the scene
 	for (var index in fleetParticles){
@@ -430,15 +378,19 @@ function createJumpLines(){
 	var jumpGroup = new THREE.Object3D();
 	
 	var greenMaterial = new THREE.LineBasicMaterial( { color: 0x006600,fog:false } );
+	var geometry = new THREE.Geometry();
 	
 	for (var i=0; i<jumpList.jumps.length;i++){	
-		var geometry = new THREE.Geometry();
+		//var geometry = new THREE.Geometry();
 		geometry.vertices.push( new THREE.Vector3( jumpList.jumps[i].jumpX1,-1, jumpList.jumps[i].jumpZ1 ) );
 		geometry.vertices.push( new THREE.Vector3( jumpList.jumps[i].jumpX2,-1, jumpList.jumps[i].jumpZ2 ) );
-		var line = new THREE.Line(geometry, greenMaterial);
-		jumpGroup.add(line);
+		//var line = new THREE.Line(geometry, greenMaterial);
+		//jumpGroup.add(line);
 	}
+	
+	var line = new THREE.LineSegments(geometry, greenMaterial);
 		
+	jumpGroup.add(line);	
 	scene.add(jumpGroup);
 }
 
@@ -586,6 +538,9 @@ function makeTextSprite(message, x, y, z, parameters) {
 
     var hAlign = parameters.hasOwnProperty("hAlign") ?
         parameters["hAlign"] : "center";
+		
+	var fogEffect = parameters.hasOwnProperty("fogEffect") ?
+        parameters["fogEffect"] : false;
 
     var canvas = document.createElement('canvas');
     var context = canvas.getContext('2d');
@@ -632,6 +587,7 @@ function makeTextSprite(message, x, y, z, parameters) {
 
     var spriteMaterial = new THREE.SpriteMaterial({
         map: texture,
+		fog: fogEffect
     });
     var sprite = new THREE.Sprite(spriteMaterial);
 
@@ -664,13 +620,30 @@ function animate() {
 
     requestAnimationFrame(animate);
 
+	
+	// Max
+	/*controls.object.position.y = 2*Math.round(controls.object.position.y/2);
+		if (controls.object.position.y % 5 ==0)
+		{
+			controls.object.position.y = controls.object.position.y+2;
+		}
+	//*/ 
+	
     // required if controls.enableDamping = true, or if controls.autoRotate = true
+	
     controls.update();
 }
 
 function render() {
 
     updateSize();
+	
+	
+	//
+	if (controls.object.position.y>=10000){scene.remove(systemLabelGroup)};
+	if (controls.object.position.y<10000){scene.add(systemLabelGroup)};
+	
+	//
 
     for (var ii = 0; ii < views.length; ++ii) {
 
@@ -745,10 +718,6 @@ function toggleSystemVisibility()
 	
 }
 
-function resetControls() {
-    controls.reset();
-}
-
 function toggleRotation() {
     if (controls.enableRotate == true) {
         controls.enableRotate = false;
@@ -758,9 +727,49 @@ function toggleRotation() {
         alert('Rotation an');
     }
 }
+    
+function toggleSidebar(){
+	if (document.getElementById("sidebar").style.display=="block"){
+			document.getElementById("sidebar").style.display = "none";
+			document.getElementById("info").style.display="block";
+	}
+	else{
+		document.getElementById("sidebar").style.display="block";
+		document.getElementById("info").style.display="none";
+	}
+	
+}	
+
+function resetControls() {
+    controls.reset();
+}
+
 
 function cameraLookDownAt(controls,camera, x, y, z) {
     camera.position.set(x, y, z);
 	camera.lookAt(new THREE.Vector3(x, 0, z));
 	controls.target.set( x, 0, z );
 }
+
+        $(function() {
+            $('#jstree').jstree({
+                "core": {
+                    "multiple": false,
+                    "animation": 1
+                },
+                "search": {
+
+                    "case_insensitive": true,
+                    "show_only_matches": true
+
+
+                },
+                "plugins": ["search", "wholerow"]
+            });
+        });
+
+        $(".search-input").keyup(function() {
+            var searchString = $(this).val();
+            console.log(searchString);
+            $('#jstree').jstree('search', searchString);
+        });
