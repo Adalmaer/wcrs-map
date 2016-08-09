@@ -29,7 +29,7 @@ var views = [{
     eye: [0, 2000, 0],
     up: [0, 1, 0],
     fov: 45
-	}, {
+	}/*, {
     left: 0.8,
     bottom: 0.75,
     width: 0.20,
@@ -38,7 +38,7 @@ var views = [{
     eye: [7500, 16500, 6000],
     up: [0, 1, 0],
     fov: 45
-}];
+}*/];
 
 init();
 animate();
@@ -105,13 +105,15 @@ function init() {
     container.appendChild(stats.dom);
 
     controls = new THREE.OrbitControls(views[0].camera, renderer.domElement);
-    controls1 = new THREE.OrbitControls(views[1].camera, renderer.domElement);
+    //controls1 = new THREE.OrbitControls(views[1].camera, renderer.domElement);
     initControlProperties();
 
 	var fog = new THREE.Fog( 0x000000, 1, 12500 );
     scene.fog = fog;
     renderer.setClearColor( 0xcccccc);
-	
+
+	resetControls();
+
 	/*systemList = null;
 	fleetList = null;
 	factionList = null;
@@ -142,10 +144,10 @@ function initControlProperties() {
 	cameraLookDownAt(controls, views[0].camera,750,2000,750);
 	
     // Controls of small window
-    controls1.enableZoom = false;
+    /*controls1.enableZoom = false;
     controls1.enablePan = false;
     controls1.enableRotate = false;
-	cameraLookDownAt(controls1, views[1].camera,offsetX,offsetX*2,offsetZ);
+	cameraLookDownAt(controls1, views[1].camera,offsetX,offsetX*2,offsetZ);*/
 	//controls1.zoomSpeed = 0.75;
 
 }
@@ -742,7 +744,8 @@ function toggleSidebar(){
 
 function resetControls() {
     controls.reset();
-}
+	cameraLookDownAt(controls,views[0].camera, 15000/2, 15000, 12000/2);
+	}
 
 
 function cameraLookDownAt(controls,camera, x, y, z) {
@@ -761,10 +764,9 @@ function cameraLookDownAt(controls,camera, x, y, z) {
 
                     "case_insensitive": true,
                     "show_only_matches": true
-
-
                 },
-                "plugins": ["search", "wholerow"]
+                //"plugins": ["search", "wholerow"]
+				"plugins": ["search"]
             });
         });
 
@@ -773,3 +775,15 @@ function cameraLookDownAt(controls,camera, x, y, z) {
             console.log(searchString);
             $('#jstree').jstree('search', searchString);
         });
+		
+		/*
+function sendAJAX(){
+    $('#test').load(
+    "minpath.php",  // url
+    { // json object of data to pass to the page
+        //stuff: "all your stuff goes in here...",
+        //moreStuff:  "even more stuff"
+    });
+    console.log('sendAJAX'); 
+}; 
+	*/	
